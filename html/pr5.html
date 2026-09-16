@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 5. Финальный CRUD — теория</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 5. Финальный CRUD</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html" class="active">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 5 / Теория</p>
+    <h1>Работа 5. Финальный CRUD</h1>
+    <p class="lead">Краткий конспект: что такое CRUD и какие паттерны использованы
+    в итоговом приложении.</p>
+
+    <h2>CRUD — четыре базовые операции</h2>
+    <p>Любое приложение с данными в основе имеет четыре действия:</p>
+    <table>
+        <tr>
+            <th>Буква</th><th>Операция</th><th>Наша страница</th><th>HTTP-метод</th>
+        </tr>
+        <tr><td>C</td><td>Create</td><td><code>add.php</code></td><td>POST</td></tr>
+        <tr><td>R</td><td>Read (список)</td><td><code>index.php</code></td><td>GET</td></tr>
+        <tr><td>U</td><td>Update</td><td><code>edit.php</code></td><td>POST</td></tr>
+        <tr><td>D</td><td>Delete</td><td><code>delete.php</code></td><td>POST (подтверждение)</td></tr>
+    </table>
+
+    <h2>Структура приложения</h2>
+<pre><code>pr5/
+├── functions.php   <span class="c">// модель (файл+JSON), CRUD, поиск, сортировки, валидация</span>
+├── layout.php      <span class="c">// общие HTML-«обёртки» страниц</span>
+├── index.php       <span class="c">// список: поиск, фильтры, сортировка, пагинация</span>
+├── add.php         <span class="c">// добавление товара</span>
+├── edit.php        <span class="c">// редактирование</span>
+├── delete.php      <span class="c">// удаление с подтверждением</span>
+└── data/catalog.json <span class="c">// хранилище</span></code></pre>
+    <p>Правило хорошего разделения: <strong>файлы-страницы отвечают за HTTP и HTML,
+    <code>functions.php</code> — за данные</strong>. Чистые функции можно тестировать без браузера.</p>
+
+    <h2>Найти товар по id: find_product</h2>
+<pre><code>function find_product(array $catalog, int $id): ?array
+{
+    foreach ($catalog as $product) {
+        if ((int) $product['id'] === $id) {
+            return $product;
+        }
+    }
+    return null;   <span class="c">// не найдено — не ошибка, а показатель «нет такого»</span>
+}</code></pre>
+    <p><code>?array</code> означает «вернёт массив или null». Проверка <code>(int)</code> важна:
+    из JSON числа приходят как <code>int</code>, но ручная правка файла может дать строки.</p>
+
+    <h2>404 для несуществующего товара</h2>
+    <p>Если <code>find_product()</code> вернул <code>null</code> — товара нет. Честный ответ сервера:</p>
+<pre><code>if ($product === null) {
+    http_response_code(404);      <span class="c">// статус для поисковиков и инструментов</span>
+    echo '&lt;h1&gt;Товар не найден&lt;/h1&gt;';
+    exit;
+}</code></pre>
+    <p>Код 404 + понятный человеческий текст — то, как должен вести себя сайт,
+    а не молчаливая белая страница.</p>
+
+    <h2>Сортировка «по стрелочкам»</h2>
+    <p>Усложнять страницам не надо: сортировку выбирает пользователь в <code>index.php</code>:</p>
+<pre><code>$sort = (string) ($_GET['sort'] ?? 'price_asc');
+<span class="c">// белый список — только то, что мы сами разрешаем, иначе гадят параметры</span>
+$sort = in_array($sort, ['price_asc', 'price_desc', 'title', 'stock'], true)
+    ? $sort : 'price_asc';</code></pre>
+    <p>Сортировка через <code>match</code> и собранные в работе 2 функции:</p>
+<pre><code>$items = match ($sort) {
+    'price_desc' =&gt; sort_by_price($items, 'desc'),
+    'title'      =&gt; sort_by_title($items),
+    'stock'      =&gt; sort_by_stock($items, 'desc'),
+    default      =&gt; sort_by_price($items, 'asc'),
+};</code></pre>
+
+    <h2>Пагинация не должна терять фильтры</h2>
+    <p>Ссылки на страницы строим из текущих GET-параметров:</p>
+<pre><code>function query_url(array $params): string
+{
+    $all = array_merge($_GET, $params);   <span class="c">// сохраняем search, category, sort</span>
+    return 'index.php?' . http_build_query($all);
+}</code></pre>
+    <p><code>http_build_query</code> сам экранирует значения — не нужно вручную склеивать <code>&amp;</code>.</p>
+
+    <h2>PRG: правильный редирект после изменения</h2>
+    <p>После успешного <code>POST</code> (add/edit/delete) отвечаем <strong>редиректом</strong>, а не HTML:</p>
+<pre><code>$catalog = add_product($catalog, $_POST);
+save_catalog($catalog);
+header('Location: index.php?added=' . $newId);
+exit;</code></pre>
+    <p>Зачем: F5 больше не отправит форму повторно. Сообщение «товар добавлен»
+    показывается уже на GET-странице по параметру в адресе.</p>
+
+    <h2>Удаление с подтверждением</h2>
+    <p>Простая ссылка-удаление опасна: случайный переход погубит данные. Правильный порядок:</p>
+    <ol>
+        <li><code>delete.php?id=N</code> — <strong>GET</strong>: показать карточку товара
+        с просьбой подтвердить;</li>
+        <li>кнопка «Да, удалить» — маленькая <strong>POST-форма</strong> на тот же <code>delete.php</code>;</li>
+        <li>только на POST выполняем <code>delete_product()</code> + <code>save_catalog()</code> + редирект.</li>
+    </ol>
+
+    <h2>Плюс минус пустой каталог</h2>
+    <p>После удаления всех товаров каталог может стать <code>[]</code> — это <strong>валидное состояние</strong>:
+    <code>array_is_list([])</code> даёт <code>true</code>, загрузка не «ремонтирует» файл, пагинация
+    с <code>perPage = 5</code> вернёт totalPages = 1. Пустую витрину показываем сообщением
+    «Ничего не найдено», а не ошибкой.</p>
+
+    <h2>Чек-лист безопасности (всё уже в коде)</h2>
+    <ul>
+        <li>вывод в HTML — только через <code>e()</code> (<code>htmlspecialchars</code>),
+        включая значения полей форм;</li>
+        <li>вход — только через <code>validate_product()</code>;</li>
+        <li><code>sort</code>/<code>page</code> — зажаты в безопасные границы;</li>
+        <li>id — приводится к <code>(int)</code>: <code>$id = (int) ($_GET['id'] ?? 0);</code> —
+        тут нет места SQL-инъекции, но привычка полезная.</li>
+    </ul>
+
+    <div class="page-nav">
+        <a href="pr4-zadanie.html">← К заданию работы 4</a>
+        <a href="pr5-zadanie.html" class="next">К заданию работы 5 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

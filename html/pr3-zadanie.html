@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 3. Каталог товаров — задание</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 3. Строки и формы</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html" class="active">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 3 / Задание</p>
+    <h1>Работа 3. Каталог товаров — строки и формы</h1>
+
+    <h2>Цель</h2>
+    <p>Научиться обрабатывать данные из веб-форм: поиск и фильтры через <code>$_GET</code>,
+    добавление товара через <code>$_POST</code>, валидация ввода, безопасный вывод
+    (<code>htmlspecialchars</code>).</p>
+
+    <h2>Задание</h2>
+    <p>Создайте страницу каталога (в <code>functions.php</code> — чистые функции,
+    в <code>index.php</code> — логика и HTML):</p>
+    <ol>
+        <li><strong>Поиск по названию</strong> — поле, шлёт методом <code>GET</code>. Поиск без учёта
+        регистра, пробелы по краям не важны, пустой запрос показывает весь каталог.</li>
+        <li><strong>Фильтр по категории</strong> — выпадающий список, тоже <code>GET</code>.
+        Значение <code>all</code> — все категории.</li>
+        <li><strong>Таблица каталога</strong> — как в работе 1, но в HTML: название, категория, цена,
+        скидка, цена со скидкой, метка наличия. Всё, что выводится, — через <code>e()</code>.</li>
+        <li><strong>Форма добавления товара</strong> (<code>POST</code>) с полями: название,
+        категория (select), цена, остаток, скидка. При ошибках валидации:
+            <ul>
+                <li>показать сообщение под соответствующим полем;</li>
+                <li>не потерять то, что пользователь уже ввёл.</li>
+            </ul>
+        </li>
+        <li><strong>Валидация</strong> (<code>validate_product()</code>):
+            <ul>
+                <li>название — не пустое и не короче 3 символов;</li>
+                <li>категория — выбрана;</li>
+                <li>цена — число и больше нуля;</li>
+                <li>остаток — число, не меньше нуля;</li>
+                <li>скидка — число от 0 до 100.</li>
+            </ul>
+        </li>
+        <li><code>sanitize_product()</code> — приводит валидные данные к «чистому» товару
+        с нужными типами (убирает пробелы, делает <code>(float)</code>/<code>(int)</code>).</li>
+        <li>Если форма прошла валидацию — покажите зелёное сообщение «товар прошёл валидацию»
+        и добавьте его первой строкой таблицы (сохранение появится в работе 4).</li>
+    </ol>
+
+    <h2>Пометки</h2>
+    <ul>
+        <li>Храните каталог в <code>data.php</code>, который <code>return</code>-ит массив.</li>
+        <li>Всё, что пришло от пользователя и попадёт в HTML (включая значения полей формы),
+        выводите только через <code>e()</code>.</li>
+        <li>Чистые функции (валидация, поиск, фильтры) держите в <code>functions.php</code> —
+        так их легко тестировать в <code>test.php</code>.</li>
+    </ul>
+
+    <h2>Запуск</h2>
+<pre><code>php test.php                          <span class="c"># автотесты функций</span>
+php -S localhost:8000 -t pr3          <span class="c"># браузер: http://localhost:8000/index.php</span></code></pre>
+
+    <h2>Критерии приёмки</h2>
+    <ul class="checklist">
+        <li><code>php test.php</code> завершается с «ошибок: 0»;</li>
+        <li>поиск «игр» находит приставку и настольную игру, «науш» — наушники;</li>
+        <li>форма со скидкой 150 покажет ошибку, цена «ноль» — ошибку;</li>
+        <li>при отправке с ошибкой введённые значения не теряются;</li>
+        <li>в HTML нет ни одного вывода <code>$p['title']</code> без <code>e()</code>
+        (посмотри глазами код);</li>
+        <li>после успешной отправки видно сообщение и товар в таблице.</li>
+    </ul>
+
+    <div class="page-nav">
+        <a href="pr3.html">← К теории работы 3</a>
+        <a href="pr4-zadanie.html" class="next">К заданию работы 4 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

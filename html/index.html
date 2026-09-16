@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Практикум по PHP 8.3 — содержание</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Сквозной проект «Каталог товаров» · процедурный стиль</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <span class="toc-title">Содержание:</span>
+    <span class="toc-home-mark"></span>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <h1>Практикум по PHP 8.3</h1>
+    <p class="lead">Пять практических работ по основам PHP, выполненных в чисто процедурном стиле
+    (без классов и ООП). Каждая работа — самостоятельный, проверяемый этап; вместе они образуют
+    один сквозной проект — веб-витрину «Каталог товаров» с хранением данных в JSON-файле.</p>
+
+    <h2>О чём курс</h2>
+    <ul>
+        <li>базовые конструкции языка: переменные, типы, условия, циклы, <code>match</code>;</li>
+        <li>процедурный подход: функции, работа с массивами, поиск, сортировка, пагинация;</li>
+        <li>веб-часть: формы <code>GET</code>/<code>POST</code>, валидация, безопасный вывод;</li>
+        <li>файлы и JSON: <code>json_encode</code>/<code>json_decode</code>, <code>json_validate</code> (новое в PHP 8.3), обработка ошибок;</li>
+        <li>итоговое приложение: полный CRUD над данными в JSON-файле.</li>
+    </ul>
+
+    <div class="note"><strong>Требования к окружению</strong>
+        PHP 8.3+ (<code>php -v</code>) и расширение <code>mbstring</code>
+        (<code>php -m | grep mbstring</code>). Никаких composer, фреймворков и БД не требуется.</div>
+
+    <h2>Работы</h2>
+
+    <ol class="works">
+        <li>
+            <h2>Работа 1. Основы языка</h2>
+            <p class="meta">Переменные, типы данных, операторы, условия, <code>match</code>, циклы, функции.</p>
+            <ul>
+                <li>каталог как многомерный массив;</li>
+                <li>цена со скидкой и метки наличия;</li>
+                <li>таблица каталога и итоговая стоимость склада.</li>
+            </ul>
+            <p class="links"><a href="pr1.html">Теория</a><a href="pr1-zadanie.html">Задание</a></p>
+        </li>
+        <li>
+            <h2>Работа 2. Массивы и функции</h2>
+            <p class="meta">Индексированные и ассоциативные массивы, функции, области видимости.</p>
+            <ul>
+                <li>фильтр по категории и по цене;</li>
+                <li>поиск по названию без учёта регистра;</li>
+                <li>сортировки и пагинация.</li>
+            </ul>
+            <p class="links"><a href="pr2.html">Теория</a><a href="pr2-zadanie.html">Задание</a></p>
+        </li>
+        <li>
+            <h2>Работа 3. Строки и формы</h2>
+            <p class="meta">Строковые функции, базовые регулярные выражения, <code>$_GET</code>/<code>$_POST</code>, валидация.</p>
+            <ul>
+                <li>поиск и фильтры через GET;</li>
+                <li>форма добавления товара с проверками;</li>
+                <li>безопасный вывод через <code>htmlspecialchars</code>.</li>
+            </ul>
+            <p class="links"><a href="pr3.html">Теория</a><a href="pr3-zadanie.html">Задание</a></p>
+        </li>
+        <li>
+            <h2>Работа 4. Файлы и JSON</h2>
+            <p class="meta">Чтение и запись файлов, JSON как формат хранения, устойчивость к ошибкам.</p>
+            <ul>
+                <li>перенос каталога в <code>data/catalog.json</code>;</li>
+                <li>функции <code>load_catalog()</code> / <code>save_catalog()</code>;</li>
+                <li>восстановление при отсутствующем или испорченном файле.</li>
+            </ul>
+            <p class="links"><a href="pr4.html">Теория</a><a href="pr4-zadanie.html">Задание</a></p>
+        </li>
+        <li>
+            <h2>Работа 5. Финальный CRUD</h2>
+            <p class="meta">Итоговое приложение: вывод, добавление, редактирование, удаление, поиск, пагинация.</p>
+            <ul>
+                <li>полный CRUD с постоянным хранением;</li>
+                <li>страницы <code>index.php</code>, <code>add.php</code>, <code>edit.php</code>, <code>delete.php</code>;</li>
+                <li>статус 404, PRG-редиректы, защита от XSS.</li>
+            </ul>
+            <p class="links"><a href="pr5.html">Теория</a><a href="pr5-zadanie.html">Задание</a></p>
+        </li>
+    </ol>
+
+    <h2>Покрытие тем по работам</h2>
+    <table>
+        <tr>
+            <th>Тема</th>
+            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+        </tr>
+        <tr><td>Переменные, типы, операторы, условия</td><td>✅</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>Циклы, match</td><td>✅</td><td></td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Индексированные/ассоциативные массивы</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Функции, области видимости</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Сортировки, пагинация</td><td></td><td>✅</td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Строки, regex, GET/POST</td><td></td><td></td><td>✅</td><td></td><td>✅</td></tr>
+        <tr><td>Валидация, XSS (htmlspecialchars)</td><td></td><td></td><td>✅</td><td></td><td>✅</td></tr>
+        <tr><td>Чтение/запись файлов</td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>JSON, json_validate (8.3)</td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Обработка ошибок и 404</td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>CRUD, редиректы (PRG)</td><td></td><td></td><td></td><td></td><td>✅</td></tr>
+    </table>
+
+    <h2>Быстрый запуск</h2>
+    <div class="start-grid">
+        <div class="start-card">
+            <strong>Тесты всех работ</strong>
+            <pre><code>php pr1/test.php
+php pr2/test.php
+php pr3/test.php
+php pr4/test.php
+php pr5/test.php</code></pre>
+            <p style="margin:6px 0 0">В конце каждой проверки — «ошибок: 0».</p>
+        </div>
+        <div class="start-card">
+            <strong>Итоговое приложение</strong>
+            <pre><code>php -S localhost:8000 -t pr5</code></pre>
+            <p style="margin:6px 0 0">Открыть <a class="kbd-link" href="http://localhost:8000/index.php">localhost:8000/index.php</a>.
+            Работы 3–4 запускаются аналогично: <code>-t pr3</code>, <code>-t pr4</code>.</p>
+        </div>
+        <div class="start-card">
+            <strong>Консольные демо</strong>
+            <pre><code>php pr1/solution.php
+php pr2/solution.php</code></pre>
+            <p style="margin:6px 0 0">Работы 1–2 выводят результат в терминал.</p>
+        </div>
+    </div>
+
+    <p>Исходный код и автотесты лежат в папках <code>pr1</code>…<code>pr5</code> рядом с этим
+    сайтом. Данные приложение хранит в <code>pr4/data/catalog.json</code> и
+    <code>pr5/data/catalog.json</code>: если файл удалить или испортить, приложение
+    само восстановит каталог по умолчанию.</p>
+
+</main>
+
+<footer class="site-footer">
+    Практикум по PHP 8.3 · процедурный PHP, без ООП · файлы + массивы + JSON
+</footer>
+
+</body>
+</html>

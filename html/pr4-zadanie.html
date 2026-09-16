@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 4. Каталог товаров — задание</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 4. Файлы и JSON</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html" class="active">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 4 / Задание</p>
+    <h1>Работа 4. Каталог товаров — файлы и JSON</h1>
+
+    <h2>Цель</h2>
+    <p>Вынести каталог из PHP-массива в JSON-файл <code>data/catalog.json</code> и научить
+    приложение загружать/сохранять данные. Товары, добавленные через форму,
+    теперь <strong>реально сохраняются</strong> на диске.</p>
+
+    <h2>Задание</h2>
+    <p>Создайте слой «модель» (в <code>model.php</code>) — функции работы с файлом:</p>
+    <ol>
+        <li><code>default_catalog(): array</code> — каталог «заводских настроек» из 8 товаров.
+        Каждый товар теперь с полем <code>id</code> (от 1 до 8).</li>
+        <li><code>save_catalog(array $catalog, string $file = CATALOG_FILE): bool</code><br>
+        Сериализует каталог в JSON (флаги <code>JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE</code>)
+        и пишет в файл с блокировкой <code>LOCK_EX</code>. Возвращает <code>false</code> при ошибке.</li>
+        <li><code>load_catalog(string $file = CATALOG_FILE): array</code><br>
+        Возвращает массив товаров <strong>в любой ситуации</strong>, восстанавливая дефолтный
+        каталог, если:
+            <ul>
+                <li>файла нет или он не читается;</li>
+                <li><code>file_get_contents</code> вернул <code>false</code>;</li>
+                <li><code>json_validate($json)</code> не прошёл;</li>
+                <li>результат <code>json_decode(..., true)</code> — не список (не подходит
+                <code>array_is_list()</code>).</li>
+            </ul>
+        Испорченный файл переименовывайте в <code>&lt;файл&gt;.broken.&lt;дата&gt;</code>, а не удаляйте.</li>
+        <li><code>catalog_stats(array $catalog): array</code> — сводка: число товаров, суммарный
+        остаток, стоимость склада (для «шапки» страницы).</li>
+        <li>Постоянная <code>CATALOG_FILE = __DIR__ . '/data/catalog.json'</code>.</li>
+        <li>В <code>index.php</code>:
+            <ul>
+                <li>данные берутся из <code>load_catalog()</code>, а не из PHP-файла;</li>
+                <li>форма добавления (работа 3) теперь реально сохраняет товар: новый <code>id</code>
+                выдаёт функция <code>next_id()</code>, затем <code>save_catalog()</code>;</li>
+                <li>после успешного сохранения — редирект
+                <code>header('Location: index.php?added=1')</code> (PRG), сообщение об успехе
+                выводится по <code>?added=1</code>;</li>
+                <li>внизу покажите служебную строку: путь к файлу, размер, дата изменения.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>Пометки</h2>
+    <ul>
+        <li>Данные, которые вернула форма, в файл писать как есть (в «сыром» виде),
+        а экранировать при выводе в HTML.</li>
+        <li>Не удаляйте товары случайно при автотестах: <code>test.php</code> работает только
+        с временными файлами в <code>sys_get_temp_dir()</code>.</li>
+        <li>Валидацию и функции-помощники (<code>search_by_name</code>, <code>filter_by_category</code>,
+        <code>validate_product</code>, <code>sanitize_product</code>, <code>e</code>) держите
+        в <code>functions.php</code>.</li>
+    </ul>
+
+    <h2>Запуск</h2>
+<pre><code>php test.php                    <span class="c"># автотесты</span>
+php -S localhost:8000 -t pr4    <span class="c"># браузер</span></code></pre>
+
+    <h2>Критерии приёмки</h2>
+    <ul class="checklist">
+        <li><code>php test.php</code> завершается с «ошибок: 0»;</li>
+        <li>после добавления товара через форму в <code>data/catalog.json</code> появляется запись,
+        а после перезагрузки страницы товар виден в таблице;</li>
+        <li>если удалить <code>catalog.json</code> вручную и обновить страницу — файл пересоздаётся
+        с дефолтным каталогом, ошибки нет;</li>
+        <li>если записать в файл мусор и обновить страницу — каталог восстанавливается, рядом
+        появляется файл <code>&lt;файл&gt;.broken.*</code>;</li>
+        <li>на странице видны путь, размер и дата изменения файла.</li>
+    </ul>
+
+    <div class="page-nav">
+        <a href="pr4.html">← К теории работы 4</a>
+        <a href="pr5-zadanie.html" class="next">К заданию работы 5 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

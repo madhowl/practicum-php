@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 3. Строки и формы — теория</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 3. Строки и формы</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html" class="active">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 3 / Теория</p>
+    <h1>Работа 3. Строки и формы</h1>
+    <p class="lead">Конспект: работа со строками, GET/POST, валидация и безопасный вывод.</p>
+
+    <h2>Строковые функции, которые пригодятся</h2>
+<pre><code>trim('  текст  ');           <span class="c">// убрать пробелы по краям</span>
+mb_strlen('текст');          <span class="c">// длина в символах (strlen — в байтах!)</span>
+mb_strtolower('ТЕКСТ');      <span class="c">// в нижний регистр (русский язык — только mb_*)</span>
+str_contains('наушники', 'науш');  <span class="c">// true — подстрока найдена (PHP 8+)</span>
+str_starts_with('телефон', 'тел'); <span class="c">// true (PHP 8+)</span>
+str_replace('а', 'о', 'каталог');  <span class="c">// католог (все вхождения)</span>
+explode(', ', 'a, b');       <span class="c">// ['a', 'b'] — строка в массив</span>
+implode('; ', ['a','b']);    <span class="c">// 'a; b' — массив в строку</span>
+substr('привет', 0, 3);      <span class="c">// 'при' — срез по позициям</span></code></pre>
+    <div class="warn"><strong>Почему mb_*</strong>
+        Обычные <code>strlen</code>/<code>strtolower</code> работают с <strong>байтами</strong>.
+        Кириллическая буква — 2 байта, поэтому <code>strlen('кот')</code> вернёт 6, а
+        <code>mb_strlen</code> — 3. Для русского текста почти всегда нужны <code>mb_*</code>.</div>
+
+    <h2>Регулярные выражения (самое начало)</h2>
+<pre><code><span class="c">// preg_match: вернёт 1, если шаблон найден, 0 — если нет</span>
+$phone = '+7 900 123 45 67';
+if (preg_match('/^\+7[\s\-]?\d{3}[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/', $phone)) {
+    echo 'Телефон валиден.';
+}</code></pre>
+    <ul>
+        <li><code>/.../</code> — границы шаблона;</li>
+        <li><code>^</code> — начало строки, <code>$</code> — конец;</li>
+        <li><code>\d</code> — цифра, <code>{3}</code> — ровно три раза, <code>[\s\-]?</code> — пробел/дефис, необязательно.</li>
+    </ul>
+    <p>Регулярки мощные, но для простых проверок (название не пустое, цена — число)
+    хватает обычных функций и <code>is_numeric()</code>.</p>
+
+    <h2>Суперглобальные массивы</h2>
+    <p>PHP автоматически подставляет данные из запроса:</p>
+<pre><code>$_GET   <span class="c">// параметры из адресной строки (?search=...&amp;category=...)</span>
+$_POST  <span class="c">// данные, посланные формой method="post"</span>
+$_SERVER['REQUEST_METHOD']  <span class="c">// 'GET' или 'POST'</span></code></pre>
+    <p>Как отличить отправку формы:</p>
+<pre><code>if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    <span class="c">// данные пришли из формы</span>
+}</code></pre>
+    <p>Форма поиска шлёт данные методом <code>GET</code> — ссылкой можно поделиться,
+    кнопка «Назад» работает, на редиректе ничего не теряется.
+    Форма изменения данных (добавление товара) — методом <code>POST</code>.</p>
+
+    <h2>Валидация = доверять нельзя</h2>
+    <p>Входные данные — строки, причём какие угодно. Правило:
+    <strong>сначала проверь, потом используй</strong>.</p>
+<pre><code>$errors = [];                       <span class="c">// список ошибок</span>
+if (trim($data['title'] ?? '') === '') {
+    $errors['title'] = 'Укажите название.';
+} elseif (mb_strlen(trim($data['title'])) &lt; 3) {
+    $errors['title'] = 'Название слишком короткое.';
+}
+if (!is_numeric($data['price'] ?? '')) {
+    $errors['price'] = 'Цена должна быть числом.';
+} elseif ((float) $data['price'] &lt;= 0) {
+    $errors['price'] = 'Цена должна быть больше нуля.';
+}
+<span class="c">// $errors === [] =&gt; всё хорошо</span></code></pre>
+    <p><code>??</code> (null-скипающий оператор): <code>$_POST['title'] ?? ''</code> — вернёт
+    <code>''</code>, если ключа нет, и не ругнётся «Undefined array key».</p>
+
+    <h2>Приведение типов часто обязательно</h2>
+    <p>Из формы всё приходит строками. Перед сохранением превращаем в нужные типы:</p>
+<pre><code>$data = [
+    'title'    =&gt; trim((string) $data['title']),      <span class="c">// строка</span>
+    'price'    =&gt; (float) $data['price'],             <span class="c">// число с дробной частью</span>
+    'stock'    =&gt; (int) $data['stock'],               <span class="c">// целое</span>
+    'discount' =&gt; (int) $data['discount'],
+];</code></pre>
+
+    <h2>Безопасный вывод: XSS</h2>
+    <p>Пользователь может передать <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> в поле названия.
+    Если вывести это как есть — браузер выполнит скрипт (XSS-атака). Решение — эскейпить при выводе:</p>
+<pre><code>echo htmlspecialchars($value, ENT_QUOTES, 'UTF-8');</code></pre>
+    <p>Удобно обернуть в короткую функцию <code>e()</code> и использовать её для <strong>всего</strong>, что выводится
+    в HTML. Для значения внутри <code>value="..."</code> атрибута тоже — поэтому <code>ENT_QUOTES</code>.</p>
+    <div class="note"><strong>Важно</strong>
+        Эскейпим <strong>при выводе</strong>, а не при вводе. Данные храним «как есть»,
+        а обязательно «чистим» в момент печати.</div>
+
+    <h2>PRG (не в этой работе, но пригодится в 5-й)</h2>
+    <p>Если после <code>POST</code> нажать F5 — браузер повторит отправку формы (продублирует товар).
+    Лечится «PRG»: после успешного POST делаем <code>header('Location: index.php')</code> с редиректом
+    на GET. Это понадобится в работе 5.</p>
+
+    <div class="page-nav">
+        <a href="pr2-zadanie.html">← К заданию работы 2</a>
+        <a href="pr3-zadanie.html" class="next">К заданию работы 3 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

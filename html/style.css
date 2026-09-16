@@ -1,0 +1,317 @@
+/* ================= Практикум PHP 8.3: общий стиль HTML-версий ================= */
+
+:root {
+  --accent: #1d4ed8;
+  --accent-dark: #1e3a8a;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg-light: #f9fafb;
+  --code-bg: #0f172a;
+  --code-text: #e2e8f0;
+  --ok: #166534;
+  --ok-bg: #e8f5e9;
+  --bad: #b91c1c;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: #fff;
+}
+
+/* ----------------------------- Шапка сайта ----------------------------- */
+
+.site-header {
+  background: var(--accent-dark);
+  color: #fff;
+  padding: 14px 20px;
+}
+
+.site-header .brand {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: .2px;
+}
+
+.site-header .brand small {
+  display: block;
+  font-weight: 400;
+  font-size: .78rem;
+  opacity: .75;
+  margin-top: 2px;
+}
+
+/* --------------------- Общее содержание (навигация) -------------------- */
+
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  padding: 10px 20px;
+  background: var(--bg-light);
+  border-bottom: 1px solid var(--border);
+  font-size: .92rem;
+}
+
+.toc .toc-title {
+  font-weight: 700;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted);
+}
+
+.toc-group { display: inline-flex; gap: 6px; align-items: center; }
+
+.toc-group .work-num {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.toc a {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.toc a:hover { text-decoration: underline; }
+
+.toc a.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.toc a.home { font-weight: 600; }
+
+/* ------------------------------- Содержание ---------------------------- */
+
+.content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 22px 20px 60px;
+}
+
+.crumbs {
+  font-size: .85rem;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+
+.crumbs a { color: var(--accent); text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; }
+
+h1 {
+  font-size: 1.7rem;
+  line-height: 1.25;
+  margin: 0 0 6px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--accent);
+}
+
+.lead {
+  color: var(--muted);
+  margin: 0 0 26px;
+  font-size: 1.02rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 34px 0 10px;
+  color: var(--accent-dark);
+}
+
+h3 { font-size: 1.05rem; margin: 24px 0 8px; }
+
+p { margin: 10px 0; }
+
+ul, ol { margin: 10px 0; padding-left: 24px; }
+li { margin: 5px 0; }
+
+strong { color: inherit; }
+
+a.kbd-link { color: var(--accent); text-decoration: none; }
+a.kbd-link:hover { text-decoration: underline; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 30px 0;
+}
+
+/* ------------------------------- Код ---------------------------------- */
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .92em;
+  background: #eef2ff;
+  color: #3730a3;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 14px 16px;
+  border-radius: 10px;
+  overflow-x: auto;
+  line-height: 1.5;
+  font-size: .9rem;
+  margin: 14px 0;
+}
+
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+pre .c { color: #94a3b8; font-style: italic; } /* комментарии — помечаются вручную при вёрстке */
+
+/* --------------------------- Таблицы -------------------------------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: .95rem;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th { background: var(--bg-light); font-weight: 600; }
+
+/* ----------------------------- Инфоблоки ------------------------------ */
+
+.note {
+  border-left: 4px solid var(--accent);
+  background: var(--bg-light);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+.warn {
+  border-left: 4px solid #d97706;
+  background: #fffbeb;
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+.note strong:first-child, .warn strong:first-child { display: block; margin-bottom: 4px; }
+
+/* --------------------- Чек-листы (критерии приёмки) --------------------- */
+
+ul.checklist {
+  list-style: none;
+  padding-left: 4px;
+}
+
+ul.checklist li {
+  position: relative;
+  padding-left: 30px;
+  margin: 8px 0;
+}
+
+ul.checklist li::before {
+  content: "\2610";              /* ☐ */
+  position: absolute;
+  left: 0;
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+/* --------------------------- Ссылки внизу ------------------------------ */
+
+.page-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 44px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: .95rem;
+}
+
+.page-nav a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.page-nav a:hover { text-decoration: underline; }
+.page-nav .next { margin-left: auto; }
+
+/* ------------------------------ index.html ------------------------------ */
+
+.works { list-style: none; padding: 0; margin: 18px 0; }
+
+.works li {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 12px 0;
+  background: #fff;
+}
+
+.works h2 { margin: 0 0 6px; font-size: 1.1rem; color: var(--text); }
+
+.works .meta { color: var(--muted); font-size: .88rem; margin: 4px 0 10px; }
+
+.works .links { display: flex; gap: 16px; flex-wrap: wrap; }
+.works .links a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.works .links a:hover { text-decoration: underline; }
+
+.pills { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 10px; }
+.pill {
+  display: inline-block;
+  font-size: .78rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+.start-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin: 14px 0;
+}
+
+.start-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--bg-light);
+}
+
+.start-card code { background: #e5e7eb; color: #111827; }
+
+footer.site-footer {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 22px 20px 50px;
+  color: var(--muted);
+  font-size: .85rem;
+  border-top: 1px solid var(--border);
+}

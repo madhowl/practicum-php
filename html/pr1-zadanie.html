@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 1. Каталог товаров — задание</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 1. Основы языка</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html" class="active">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 1 / Задание</p>
+    <h1>Работа 1. Каталог товаров — первые шаги</h1>
+
+    <h2>Цель</h2>
+    <p>Познакомиться с базовыми конструкциями PHP: переменные, типы данных, операторы,
+    условия, <code>match</code> и циклы. Результат — «живая» таблица каталога товаров с расчётом
+    скидок и итогов по складу.</p>
+
+    <h2>Задание</h2>
+    <ol>
+        <li>
+            Создайте массив <code>$catalog</code> из <strong>не менее 6 товаров</strong>.
+            У каждого товара обязательные поля:
+            <ul>
+                <li><code>title</code> — название (строка);</li>
+                <li><code>category</code> — категория (строка);</li>
+                <li><code>price</code> — цена в рублях (целое);</li>
+                <li><code>stock</code> — остаток на складе (целое, 0 допустимо);</li>
+                <li><code>discount</code> — скидка в процентах (целое, от 0 до 100).</li>
+            </ul>
+            <p>Пример категорий: «Техника», «Аксессуары», «Игры».</p>
+        </li>
+        <li>
+            Напишите функцию <code>price_with_discount(int $price, int $discount): float</code>,
+            которая возвращает цену со скидкой, округлённую до 2 знаков после запятой.
+            Скидка 0 — цена не меняется.
+        </li>
+        <li>
+            Напишите функцию <code>stock_label(int $stock): string</code> через <code>match</code>:
+            <ul>
+                <li><code>0</code> → <code>'Нет в наличии'</code>;</li>
+                <li>от <code>1</code> до <code>5</code> включительно → <code>'Мало'</code>;</li>
+                <li>больше <code>5</code> → <code>'В наличии'</code>.</li>
+            </ul>
+        </li>
+        <li>
+            Выведите таблицу каталога циклом <code>for</code>, используя:
+            <ul>
+                <li><code>count($catalog)</code> для количества строк;</li>
+                <li><code>number_format(..., 0, ',', ' ')</code> для цены и скидки;</li>
+                <li><code>stock_label()</code> в колонке «Остаток».</li>
+            </ul>
+        </li>
+        <li>
+            Отдельным циклом <code>foreach</code> посчитайте <strong>итоговую стоимость всего склада</strong>
+            (сумма <em>цена со скидкой × остаток</em> по каждому товару) и количество товаров со скидкой.
+            Выведите оба числа под таблицей.
+        </li>
+        <li>Продемонстрируйте любой пример на <code>while</code> (например, выведите число строк
+        отсчётом от 5 до 1 перед таблицей).</li>
+    </ol>
+
+    <h2>Запуск</h2>
+<pre><code>php solution.php     <span class="c"># эталонное решение</span>
+php test.php         <span class="c"># автотесты (должны пройти все)</span></code></pre>
+
+    <h2>Критерии приёмки</h2>
+    <ul class="checklist">
+        <li><code>php test.php</code> завершается без ошибок (в конце «ошибок: 0»);</li>
+        <li>в таблице есть все товары из каталога;</li>
+        <li>цены со скидкой посчитаны верно (проверьте на калькуляторе 1–2 строки вручную);</li>
+        <li>в категории «Мало» у товара остаток от 1 до 5, «Нет в наличии» — 0;</li>
+        <li>итоговая стоимость склада совпадает с ручным расчётом.</li>
+    </ul>
+
+    <div class="page-nav">
+        <a href="pr1.html">← К теории работы 1</a>
+        <a href="pr2-zadanie.html" class="next">К заданию работы 2 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

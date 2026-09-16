@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 5. Финальный CRUD — задание</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 5. Финальный CRUD</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html" class="active">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 5 / Задание</p>
+    <h1>Работа 5. Каталог товаров — финальный CRUD</h1>
+
+    <h2>Цель</h2>
+    <p>Собрать приложение с четырьмя CRUD-операциями: список с поиском и фильтрами,
+    добавление, редактирование и удаление (с подтверждением). Данные — в <code>data/catalog.json</code>,
+    всё через процедурные функции без ООП.</p>
+
+    <h2>Задание</h2>
+    <p>Постройте на основе работ 3–4 полное приложение:</p>
+    <ol>
+        <li><strong>Модель</strong> (<code>functions.php</code>):
+            <ul>
+                <li><code>load_catalog()</code>, <code>save_catalog()</code>,
+                <code>default_catalog()</code>, <code>next_id()</code> — из работы 4;</li>
+                <li><code>find_product(array $catalog, int $id): ?array</code>;</li>
+                <li><code>add_product(array $catalog, array $data): array</code> —
+                добавляет товар и возвращает новый каталог;</li>
+                <li><code>update_product(array $catalog, int $id, array $data): ?array</code> —
+                правит существующий товар (или <code>null</code>, если такого нет);</li>
+                <li><code>delete_product(array $catalog, int $id): ?array</code> —
+                убирает товар (или <code>null</code>);</li>
+                <li>функции работы 2 (поиск, фильтры, сортировки, пагинация)
+                и работы 3 (валидация, <code>e()</code>).</li>
+            </ul>
+        </li>
+        <li><strong>Список</strong> (<code>index.php</code>): поиск <code>?search=</code>,
+        фильтр <code>?category=</code>, сортировка <code>?sort=</code> (белый список:
+        <code>price_asc</code>, <code>price_desc</code>, <code>title</code>, <code>stock</code>),
+        пагинация по 5 товаров со ссылками, сохраняющими все GET-параметры. Для каждого товара —
+        ссылки «Изменить» и «Удалить». Под таблицей — счётчик товаров и стоимость склада.</li>
+        <li><strong>Добавление</strong> (<code>add.php</code>): форма из работы 3, но теперь
+        реально сохраняет. После успеха — <code>header('Location: index.php?added=N')</code>,
+        сообщение «Товар добавлен» показывается на списке.</li>
+        <li><strong>Редактирование</strong> (<code>edit.php?id=N</code>): те же поля, форма
+        предзаполнена значениями товара. Если товара нет — <code>http_response_code(404)</code>
+        и текст «Товар не найден». После сохранения — редирект
+        <code>Location: index.php?updated=N</code> с сообщением.</li>
+        <li><strong>Удаление</strong> (<code>delete.php?id=N</code>):
+            <ul>
+                <li>GET — страница «Удалить товар?» с карточкой товара и кнопкой подтверждения;</li>
+                <li>кнопка — <strong>POST-форма</strong> на тот же <code>delete.php</code>;
+                удаление выполняется только на POST;</li>
+                <li>после удаления — редирект <code>index.php?deleted=N</code>;</li>
+                <li>для несуществующего id — 404.</li>
+            </ul>
+        </li>
+        <li><strong>Общая вёрстка</strong> (<code>layout.php</code>): шапка + общие заголовки —
+        <code>layout_start($title)</code>/<code>layout_finish()</code>. Баннер-заглушка
+        <code>banner(?string $text)</code> — выводит сообщение только если текст задан.</li>
+    </ol>
+
+    <h2>Пометки</h2>
+    <ul>
+        <li>Вывод — только через <code>e()</code>; значения в полях форм — тоже.</li>
+        <li>Валидация общая для add и edit: <code>validate_product()</code>,
+        при ошибке — подсветить поля и восстановить ввод.</li>
+        <li>id брать так: <code>$id = (int) ($_GET['id'] ?? 0);</code></li>
+        <li>Пустой каталог — валидное состояние, показывать «Ничего не найдено».</li>
+    </ul>
+
+    <h2>Запуск</h2>
+<pre><code>php test.php                    <span class="c"># автотесты</span>
+php -S localhost:8000 -t pr5    <span class="c"># браузер: http://localhost:8000/index.php</span></code></pre>
+
+    <h2>Критерии приёмки</h2>
+    <ul class="checklist">
+        <li><code>php test.php</code> завершается с «ошибок: 0»;</li>
+        <li>добавление → товар в файле и списке, на F5 дублей нет;</li>
+        <li>редактирование → изменения в файле и списке, есть сообщение «обновлён»;</li>
+        <li>удаление → товар пропал в файле и списке, есть сообщение «удалён»;</li>
+        <li><code>edit.php?id=999</code> и <code>delete.php?id=999</code> дают HTML с 404;</li>
+        <li>сортировка меняет порядок, пагинация переживает сочетание
+        <code>search</code> + <code>category</code> + <code>sort</code>;</li>
+        <li>пустой результат поиска показывает «Ничего не найдено», а не ошибку.</li>
+    </ul>
+
+    <h2>Эталонный режим</h2>
+    <p>Полное эталонное решение лежит в <code>solution/</code> — сравните свою реализацию,
+    только сначала пройдите задание сами.</p>
+
+    <div class="page-nav">
+        <a href="pr5.html">← К теории работы 5</a>
+        <a href="index.html" class="next">На главную (содержание) →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

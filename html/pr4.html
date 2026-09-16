@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 4. Файлы и JSON — теория</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 4. Файлы и JSON</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html" class="active">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 4 / Теория</p>
+    <h1>Работа 4. Файлы и JSON</h1>
+    <p class="lead">Конспект: чтение и запись файлов, JSON как формат хранения, обработка ошибок.</p>
+
+    <h2>Зачем JSON</h2>
+    <p>Каталог раньше жил в PHP-файле — менять его мог только программист.
+    Хранение в JSON-файле даёт два бонуса:</p>
+    <ul>
+        <li><strong>данные отделены от кода</strong> — их можно редактировать руками или программой;</li>
+        <li><strong>сайт сам себя обновляет</strong> — форму добавления из работы 3 теперь можно
+        «подружить» с файлом.</li>
+    </ul>
+
+    <h2>Чтение и запись файлов</h2>
+<pre><code><span class="c">// весь файл одной строкой</span>
+$json = file_get_contents('data/catalog.json');   <span class="c">// string|false</span>
+$ok   = file_put_contents('data/catalog.json', $json, LOCK_EX);  <span class="c">// int|false</span>
+
+<span class="c">// построчно (для больших файлов или построчной обработки)</span>
+$fp = fopen('data/catalog.json', 'r');            <span class="c">// 'r' — чтение</span>
+if ($fp === false) { <span class="c">/* не открылся */</span> }
+while (($line = fgets($fp)) !== false) {
+    <span class="c">// обработать строку</span>
+}
+fclose($fp);</code></pre>
+    <p>Проверки перед чтением:</p>
+<pre><code>is_file($file);        <span class="c">// существует ли файл</span>
+is_readable($file);    <span class="c">// читается ли</span>
+is_writable($file);    <span class="c">// записывается ли</span>
+filesize($file);       <span class="c">// размер в байтах</span>
+filemtime($file);      <span class="c">// время изменения (timestamp) — для вывода «изменён: …»</span></code></pre>
+
+    <h2>json_encode / json_decode</h2>
+<pre><code>$array = [['title' =&gt; 'Ноутбук', 'price' =&gt; 54990]];
+
+$json = json_encode($array, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+<span class="c">// JSON_PRETTY_PRINT      — «красивый» многострочный вид</span>
+<span class="c">// JSON_UNESCAPED_UNICODE — не превращать «Ноутбук» в \u041d\u043e...</span>
+
+$back = json_decode($json, true);   <span class="c">// true = вернуть массив, а не объект</span>
+<span class="c">// json_decode(..., false) вернёт stdClass-объекты — с ними неудобно</span></code></pre>
+    <div class="warn"><strong>Проверяйте результат</strong>
+        <code>json_encode</code> возвращает <code>false</code>, если данные не сериализуются
+        (например, теряются при конвертации типов).</div>
+
+    <h2>json_validate (PHP 8.3)</h2>
+    <p>Сначала просто проверить, что строка — корректный JSON, и только потом разбирать:</p>
+<pre><code>if (json_validate($json)) {
+    $catalog = json_decode($json, true);
+} else {
+    <span class="c">// файл испорчен — восстанавливаем</span>
+}</code></pre>
+
+    <h2>Блокировка при записи: LOCK_EX</h2>
+    <p>Два посетителя могут сохранить каталог почти одновременно — файл «затрётся».
+    Флаг <code>LOCK_EX</code> ставит эксклюзивную блокировку на время записи:</p>
+<pre><code>file_put_contents($file, $json, LOCK_EX);</code></pre>
+
+    <h2>«Выживать» при любом состоянии файла</h2>
+    <p>Правило надёжной модели: <strong>функция всегда возвращает массив</strong>, что бы ни было
+    с файлом. Цепочка проверок:</p>
+    <ol>
+        <li>файла нет / не читается → создать с каталогом по умолчанию;</li>
+        <li><code>file_get_contents</code> вернул <code>false</code> → восстановить;</li>
+        <li><code>json_validate</code> не прошёл → восстановить;</li>
+        <li><code>json_decode</code> вернул не список → восстановить (JSON-объект <code>{...}</code>
+        декодируется в ассоциативный массив — спасает <code>array_is_list()</code>);</li>
+        <li>всё хорошо → вернуть данные.</li>
+    </ol>
+    <p>Восстановление: испорченный файл <strong>не стираем молча</strong>, а переименовываем с датой:</p>
+<pre><code>@rename($file, $file . '.broken.' . date('YmdHis'));</code></pre>
+
+    <h2>Функции-«пути»</h2>
+<pre><code>__DIR__;  <span class="c">// абсолютный путь к папке текущего файла</span>
+dirname(__FILE__); <span class="c">// та же идея для старых версий</span>
+<span class="c">// Использование __DIR__ делает пути независимыми от рабочей папки запуска.</span></code></pre>
+
+    <h2>PRG-паттерн (в коде index.php)</h2>
+    <p>Без него нажатие F5 после успешного POST повторно добавит товар. Решаем так: после
+    сохранения — редирект на GET-страницу, сообщение передаём через параметр <code>?added=1</code>:</p>
+<pre><code>header('Location: index.php?added=1');
+exit;</code></pre>
+
+    <div class="page-nav">
+        <a href="pr3-zadanie.html">← К заданию работы 3</a>
+        <a href="pr4-zadanie.html" class="next">К заданию работы 4 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

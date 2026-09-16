@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 2. Каталог товаров — задание</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 2. Массивы и функции</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html" class="active">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 2 / Задание</p>
+    <h1>Работа 2. Каталог товаров — массивы и функции</h1>
+
+    <h2>Цель</h2>
+    <p>Научиться обрабатывать многомерные массивы с помощью процедурных функций:
+    фильтровать по категории и цене, искать по названию, сортировать и резать
+    каталог на страницы. Это фундамент витрины из работ 3–5.</p>
+
+    <h2>Задание</h2>
+    <p>Используйте каталог из работы 1 (или свой). Напишите функции:</p>
+    <ol>
+        <li><code>filter_by_category(array $catalog, ?string $category): array</code><br>
+        Возвращает только товары выбранной категории. Значения <code>null</code>, <code>''</code>
+        или <code>'all'</code> означают «весь каталог».</li>
+        <li><code>filter_by_price(array $catalog, float $min = 0.0, ?float $max = null): array</code><br>
+        Возвращает товары, у которых <code>price</code> в диапазоне <code>[min, max]</code> включительно.
+        Если <code>$max = null</code> — верхней границы нет.</li>
+        <li><code>search_by_name(array $catalog, string $query): array</code><br>
+        Ищет товары, в названии которых встречается подстрока <code>$query</code>.
+        Поиск <strong>без учёта регистра</strong> (пригодится <code>mb_strtolower</code> и
+        <code>str_contains</code>). Пробелы по краям запроса не важны, пустой запрос — весь каталог.</li>
+        <li><code>sort_by_price(array $catalog, string $direction = 'asc'): array</code><br>
+        Сортирует по цене: <code>'asc'</code> — от дешёвых к дорогим, <code>'desc'</code> — наоборот.
+        Массив, переданный снаружи, менять нельзя.</li>
+        <li><code>sort_by_title(array $catalog, string $direction = 'asc'): array</code><br>
+        Сортирует по названию по алфавиту (без учёта регистра).</li>
+        <li><code>paginate(array $items, int $page, int $perPage): array</code><br>
+        Возвращает массив с ключами <code>items</code>, <code>total</code>, <code>page</code>,
+        <code>totalPages</code>. Номер страницы «зажимайте» в диапазон от 1 до последней.</li>
+        <li><code>unique_categories(array $catalog): array</code><br>
+        Возвращает список категорий каталога без повторов.</li>
+        <li>Напишите небольшую демонстрацию, которая применяет каждую функцию к каталогу
+        и печатает результат (как в <code>solution.php</code>).</li>
+    </ol>
+
+    <h2>Подсказки</h2>
+    <ul>
+        <li>Для сортировки используйте <code>usort()</code> и оператор <code>&lt;=&gt;</code>.</li>
+        <li>Для пагинации — <code>array_slice()</code> и <code>ceil()</code>.</li>
+        <li>Для уникальных категорий — ключи ассоциативного массива.</li>
+        <li>Сначала копируйте каталог в локальную переменную перед сортировкой.</li>
+    </ul>
+
+    <h2>Запуск</h2>
+<pre><code>php solution.php     <span class="c"># эталонное решение</span>
+php test.php         <span class="c"># автотесты</span></code></pre>
+
+    <h2>Критерии приёмки</h2>
+    <ul class="checklist">
+        <li><code>php test.php</code> завершается с «ошибок: 0»;</li>
+        <li>фильтры не «теряют» товары других категорий;</li>
+        <li>поиск находит строки на русском и без учёта регистра;</li>
+        <li>сортировка в обе стороны работает, исходный массив не изменился;</li>
+        <li>пагинация корректно отрабатывает страницы 0, 1 и слишком большие номера.</li>
+    </ul>
+
+    <div class="page-nav">
+        <a href="pr2.html">← К теории работы 2</a>
+        <a href="pr3-zadanie.html" class="next">К заданию работы 3 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

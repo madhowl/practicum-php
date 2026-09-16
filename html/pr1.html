@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 1. Основы языка PHP — теория</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 1. Основы языка</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html" class="active">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 1 / Теория</p>
+    <h1>Работа 1. Основы языка PHP</h1>
+    <p class="lead">Краткий конспект того, что понадобится в задании.</p>
+
+    <h2>Переменные и типы данных</h2>
+    <p>Переменная начинается с <code>$</code>. PHP умеет сам определять тип значения:</p>
+<pre><code>$name  = 'Ноутбук';          <span class="c">// строка (string)</span>
+$price = 54990;              <span class="c">// целое число (int)</span>
+$part  = 10.5;               <span class="c">// дробное число (float)</span>
+$inStock = true;             <span class="c">// логическое (bool): true / false</span>
+$nothing = null;             <span class="c">// пусто (null)</span>
+$items = ['a', 'b'];         <span class="c">// массив (array)</span></code></pre>
+    <p>Проверить тип можно функцией <code>var_dump($value)</code> — полезная штука во время отладки.</p>
+
+    <h2>Операторы</h2>
+<pre><code>$a = 7 + 2;   <span class="c">// 9    сложение</span>
+$a = 7 - 2;   <span class="c">// 5    вычитание</span>
+$a = 7 * 2;   <span class="c">// 14   умножение</span>
+$a = 7 / 2;   <span class="c">// 3.5  деление</span>
+$a = 7 % 4;   <span class="c">// 3    остаток от деления</span>
+$a = 2 ** 3;  <span class="c">// 8    возведение в степень</span>
+
+$a++;         <span class="c">// увеличить на 1 (то же, что $a = $a + 1)</span>
+$a--;         <span class="c">// уменьшить на 1</span></code></pre>
+    <p>Сравнение и логика:</p>
+<pre><code>$a ==  $b     <span class="c">// равно (без проверки типа)</span>
+$a === $b     <span class="c">// строго равно (значение И тип)</span>
+$a !=  $b     <span class="c">// не равно</span>
+$a !== $b     <span class="c">// строго не равно</span>
+$a &lt; $b, $a &gt; $b, $a &lt;= $b, $a &gt;= $b
+$result = $a &amp;&amp; $b;   <span class="c">// логическое И (оба истинны)</span>
+$result = $a || $b;   <span class="c">// логическое ИЛИ (хотя бы одно истинно)</span>
+$result = !$a;        <span class="c">// отрицание</span></code></pre>
+
+    <h2>Строки</h2>
+<pre><code>$title = 'Каталог';
+$text  = 'Привет, ' . $title . '!';   <span class="c">// конкатенация через точку</span>
+$text2 = "Цена: $price";               <span class="c">// интерполяция — переменная подставляется при двойных кавычках</span>
+$multiline = &lt;&lt;&lt;TEXT
+  Текст на несколько
+  строк (heredoc).
+TEXT;</code></pre>
+
+    <h2>Условия</h2>
+<pre><code>if ($stock === 0) {
+    echo 'Нет в наличии';
+} elseif ($stock &lt;= 5) {
+    echo 'Мало';
+} else {
+    echo 'В наличии';
+}</code></pre>
+    <p><code>switch</code> — удобен, когда одно выражение сравнивается с несколькими значениями:</p>
+<pre><code>switch ($category) {
+    case 'Техника':
+        $icon = '💻';
+        break;
+    case 'Игры':
+        $icon = '🕹️';
+        break;
+    default:
+        $icon = '📦';
+}</code></pre>
+
+    <h2>match — «умный switch» из PHP 8</h2>
+    <p>Не требует <code>break</code>, возвращает значение и умеет условия:</p>
+<pre><code>$label = match (true) {
+    $stock === 0 =&gt; 'Нет в наличии',
+    $stock &lt;= 5  =&gt; 'Мало',
+    default      =&gt; 'В наличии',
+};</code></pre>
+
+    <h2>Циклы</h2>
+<pre><code><span class="c">// Пока условие истинно</span>
+while ($i &lt; 3) { $i++; }
+
+<span class="c">// Цикл со счётчиком</span>
+for ($i = 0; $i &lt; 3; $i++) { ... }
+
+<span class="c">// По элементам массива — самый частый цикл</span>
+foreach ($catalog as $product) { ... }
+
+<span class="c">// foreach с ключом</span>
+foreach ($catalog as $index =&gt; $product) { ... }</code></pre>
+    <p>Управление циклом: <code>break;</code> — выйти, <code>continue;</code> — перейти к следующей итерации.</p>
+
+    <h2>Функции</h2>
+<pre><code>function price_with_discount(int $price, int $discount): float
+{
+    return round($price * (100 - $discount) / 100, 2);
+}</code></pre>
+    <ul>
+        <li>параметры с типами <code>int</code>, <code>float</code>, <code>string</code>, <code>array</code>…;</li>
+        <li><code>: float</code> после скобок — тип возвращаемого значения;</li>
+        <li><code>return</code> возвращает значение (без <code>return</code> функция вернёт <code>null</code>).</li>
+    </ul>
+    <div class="note"><strong>Область видимости</strong>
+        У функции своя область видимости — переменные, объявленные внутри, снаружи не видны,
+        а глобальные внутри не видны автоматически. Передавайте данные параметрами.</div>
+
+    <h2>Полезные функции</h2>
+<pre><code>count($array);                       <span class="c">// число элементов в массиве</span>
+number_format(49491.0, 2, ',', ' '); <span class="c">// формат числа: 49 491,00</span>
+str_repeat('-', 20);                 <span class="c">// строка из 20 черточек</span>
+round(1.234, 2);                     <span class="c">// округление до 2 знаков</span></code></pre>
+
+    <h2>Константы и пути</h2>
+<pre><code>define('STORE_NAME', 'Моя витрина'); <span class="c">// глобальная константа</span>
+echo STORE_NAME;</code></pre>
+
+    <h2>Массивы, которые мы используем</h2>
+    <p>Каждый товар — ассоциативный массив (ключ =&gt; значение). Вся коллекция — массив таких массивов
+    (многомерный массив):</p>
+<pre><code>$catalog = [
+    ['title' =&gt; 'Ноутбук', 'price' =&gt; 54990, 'stock' =&gt; 12, 'discount' =&gt; 10],
+];
+<span class="c">// обращение: $catalog[0]['title'], $catalog[0]['price']</span></code></pre>
+
+    <div class="page-nav">
+        <span>Начало</span>
+        <a href="pr1-zadanie.html" class="next">К заданию работы 1 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 2. Массивы и функции — теория</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 2. Массивы и функции</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html" class="active">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 2 / Теория</p>
+    <h1>Работа 2. Массивы и функции</h1>
+    <p class="lead">Конспект по теме. Всё демонстрируется на примерах из задания — каталога товаров.</p>
+
+    <h2>Виды массивов</h2>
+    <p><strong>Индексированный</strong> — ключи 0, 1, 2…:</p>
+<pre><code>$colors = ['красный', 'зелёный', 'синий'];
+echo $colors[0];       <span class="c">// красный</span>
+$colors[] = 'белый';   <span class="c">// добавить в конец</span></code></pre>
+    <p><strong>Ассоциативный</strong> — свои ключи:</p>
+<pre><code>$product = [
+    'title'  =&gt; 'Ноутбук',
+    'price'  =&gt; 54990,
+    'stock'  =&gt; 12,
+];
+echo $product['title'];  <span class="c">// Ноутбук</span></code></pre>
+    <p><strong>Многомерный</strong> — массив массивов (наш каталог):</p>
+<pre><code>$catalog = [
+    ['title' =&gt; 'Ноутбук', 'price' =&gt; 54990],
+    ['title' =&gt; 'Мышь',    'price' =&gt; 1290],
+];
+echo $catalog[1]['title'];   <span class="c">// Мышь</span></code></pre>
+
+    <h2>Базовые операции с массивами</h2>
+<pre><code>count($catalog);                        <span class="c">// сколько элементов</span>
+in_array('Мышь', $names, true);         <span class="c">// есть ли значение (true = строгая проверка)</span>
+array_push($items, $x);                 <span class="c">// то же, что $items[] = $x;</span>
+array_pop($items);                      <span class="c">// убрать последний</span>
+array_key_exists('price', $product);    <span class="c">// есть ли ключ</span>
+array_keys($product);                   <span class="c">// все ключи</span>
+array_values($catalog);                 <span class="c">// все значения (ключи 0,1,2…)</span>
+array_slice($items, 0, 3);              <span class="c">// срез: 3 элемента с 0-го</span>
+array_column($catalog, 'price');        <span class="c">// столбец 'price' из всех строк</span>
+implode(', ', $names);                  <span class="c">// массив -&gt; строка</span>
+explode(', ', 'a, b');                  <span class="c">// строка -&gt; массив</span></code></pre>
+
+    <h2>Цикл foreach по «строкам» таблицы</h2>
+<pre><code>foreach ($catalog as $product) {
+    <span class="c">// внутри $product — один товар (ассоциативный массив)</span>
+}</code></pre>
+    <p>Важно: <code>foreach</code> меняет списочный ключ (0,1,2), а если массив достали из JSON и он
+    содержал ключи — порядок сохраняется, но ключи остаются. Поэтому если нужен «честный»
+    переиндексированный список с ключами 0,1,2 — используйте <code>array_values()</code>.</p>
+
+    <h2>Встроенные функции-циклы</h2>
+    <p>Часто проще один раз выучить функции, чем писать циклы вручную:</p>
+<pre><code>array_map($callback, $array);                  <span class="c">// применить callback к каждому элементу</span>
+array_filter($array, $callback);               <span class="c">// оставить элементы, где callback вернул true</span>
+usort($array, $callback);                      <span class="c">// сортировка по своему правилу</span></code></pre>
+    <p>Пример сортировки через <code>usort</code>:</p>
+<pre><code>usort($catalog, function (array $a, array $b) {
+    return $a['price'] &lt;=&gt; $b['price'];        <span class="c">// оператор корабль сравнения</span>
+});</code></pre>
+    <p>Оператор <code>&lt;=&gt;</code> возвращает −1, 0 или 1 — именно то, что ждёт <code>usort</code>.</p>
+
+    <h2>Функции — подробнее</h2>
+<pre><code><span class="c">// параметр со значением по умолчанию</span>
+function filter_by_price(array $catalog, float $min = 0.0, ?float $max = null): array
+{
+    ...
+}
+
+<span class="c">// тип результата — массив (обязательный)</span></code></pre>
+    <ul>
+        <li>параметру можно задать тип: <code>array $catalog</code>, <code>float $min</code>;</li>
+        <li><code>?float $max</code> — параметр может быть <code>null</code> или числом;</li>
+        <li><code>: array</code> — обязательный тип результата;</li>
+        <li>переменные, объявленные внутри функции, наружу не видны; снаружи — не видны внутри;
+        всё, что нужно, передавайте параметрами;</li>
+        <li><code>return</code> прерывает функцию и возвращает значение;</li>
+        <li><code>use ($direction)</code> внутри анонимной функции — способ «прокинуть» внешнюю переменную.</li>
+    </ul>
+
+    <h2>Тонкость: сортировка не теряет данные</h2>
+    <p><code>usort</code> меняет массив «на месте» (по ссылке), а мы возвращаем тот же массив из
+    функции. Если передать <code>$catalog</code> напрямую — исходный каталог «испортится».
+    Поэтому сначала копируем массив в <code>sort_by_price()</code> — присваивание массива в PHP
+    само копирует его (copy-on-write), менять можно смело.</p>
+
+    <h2>Пагинация одной функцией</h2>
+<pre><code>$paged = paginate($catalog, $page, $perPage);
+<span class="c">// $paged['items']      — товары текущей страницы</span>
+<span class="c">// $paged['total']      — сколько всего</span>
+<span class="c">// $paged['page']       — текущая страница (уже исправленная)</span>
+<span class="c">// $paged['totalPages'] — сколько страниц</span></code></pre>
+    <p>Текущая страница «зажимается» в диапазон <code>1..totalPages</code> — это защищает
+    от выхода за границы при ручном вводе <code>?page=999</code>.</p>
+
+    <div class="page-nav">
+        <a href="pr1-zadanie.html">← К заданию работы 1</a>
+        <a href="pr2-zadanie.html" class="next">К заданию работы 2 →</a>
+    </div>
+
+</main>
+
+</body>
+</html>
