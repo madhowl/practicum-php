@@ -1,0 +1,8 @@
+# Composer: зависимости не коммитим
+/pr6/vendor/
+/pr6/solution/vendor/
+
+# Тестовые данные и «испорченные» копии каталога
+pr6/data/catalog.json
+pr6/solution/data/catalog.json
+*.broken.*

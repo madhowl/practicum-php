@@ -184,6 +184,15 @@ pre code {
 
 pre .c { color: #94a3b8; font-style: italic; } /* комментарии — помечаются вручную при вёрстке */
 
+/* Диаграммы Mermaid: рендерит SVG, поэтому тёмный фон кода убираем */
+pre.mermaid {
+  background: transparent;
+  color: inherit;
+  text-align: center;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
 /* --------------------------- Таблицы -------------------------------- */
 
 table {

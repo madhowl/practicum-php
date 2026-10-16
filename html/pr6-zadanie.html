@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 6. ООП — задание</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 6. ООП: каталог на классах</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">6</span><a href="pr6.html">теория</a><a href="pr6-zadanie.html" class="active">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 6 / Задание</p>
+    <h1>Работа 6. Каталог товаров — ООП</h1>
+
+    <h2>Цель</h2>
+    <p>Переписать логику каталога из работы 5 на классы. Данные и поведение товара должны жить
+    вместе, категория стать строгим типом, а ошибки — обрабатываться предсказуемо. Внешне
+    приложение остаётся тем же CRUD-каталогом, но внутри всё устроено по-объектному.</p>
+
+    <h2>Что должно получиться</h2>
+<pre><code>pr6/
+├── test.php           <span class="c">// автотесты (уже есть)</span>
+├── composer.json      <span class="c">// правило автозагрузки PSR-4</span>
+├── src/               <span class="c">// ВАШИ классы (создаёте вы)</span>
+│   ├── Category.php
+│   ├── Product.php
+│   ├── ProductValidator.php
+│   ├── Catalog.php
+│   ├── StorageInterface.php
+│   ├── JsonFileStorage.php
+│   ├── CatalogRepository.php
+│   ├── Html.php
+│   ├── ProductNotFoundException.php
+│   ├── StorageException.php
+│   └── InvalidArgumentException.php
+├── bootstrap.php      <span class="c">// подключает vendor/autoload.php</span>
+├── layout.php         <span class="c">// общие HTML-обёртки</span>
+├── index.php add.php edit.php delete.php
+├── data/catalog.json  <span class="c">// создаётся само</span>
+└── vendor/            <span class="c">// автозагрузчик от Composer</span></code></pre>
+    <p><strong>Важно про имена файлов.</strong> Автозагрузка работает по правилу «имя класса =
+    путь к файлу»: класс <code>App\Product</code> лежит в <code>src/Product.php</code>.</p>
+    <p>После каждого шага запускайте <code>php test.php</code> — в конце должно быть
+    «ошибок: 0».</p>
+
+    <h2>Шаг 0. Автозагрузка через Composer</h2>
+    <p>Подключать одиннадцать файлов вручную через <code>require</code> неудобно. Доверим
+    автозагрузку <strong>Composer</strong>: он сгенерирует её по правилу PSR-4.</p>
+    <p>1. Создайте в папке <code>pr6</code> файл <code>composer.json</code> с правилом PSR-4:</p>
+<pre><code>{
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}</code></pre>
+    <p>2. Выполните установку — появится папка <code>vendor/</code> и файл-автозагрузчик:</p>
+<pre><code>composer install</code></pre>
+    <p>3. Создайте <code>bootstrap.php</code>, который подключает готовый автозагрузчик:</p>
+<pre><code>require __DIR__ . '/vendor/autoload.php';</code></pre>
+    <p>После этого класс <code>App\Product</code> подключается из <code>src/Product.php</code>
+    автоматически. Папку <code>vendor/</code> не редактируют руками и не коммитят — она
+    воспроизводится командой <code>composer install</code>.</p>
+
+    <h2>Шаг 1. <code>Category</code> — перечисление</h2>
+<pre><code>enum Category: string
+{
+    case Tech = 'Техника';
+    case Games = 'Игры';
+    case Accessories = 'Аксессуары';
+
+    public function label(): string;          <span class="c">// название для человека</span>
+    public static function labels(): array;   <span class="c">// ['Техника', 'Игры', 'Аксессуары']</span>
+}</code></pre>
+<pre><code>Category::Tech-&gt;value;      <span class="c">// Техника</span>
+Category::Games-&gt;label();   <span class="c">// Игры</span>
+Category::from('Аксессуары');   <span class="c">// Category::Accessories</span>
+Category::tryFrom('Ерунда');    <span class="c">// null</span></code></pre>
+
+    <h2>Шаг 2. <code>Product</code> — товар</h2>
+<pre><code>final class Product
+{
+    public function __construct(
+        public readonly int $id,
+        public readonly string $title,
+        public readonly Category $category,
+        public readonly float $price,
+        public readonly int $stock,
+        public readonly int $discount,
+    );
+
+    public function priceWithDiscount(): float;   <span class="c">// цена со скидкой</span>
+    public function stockLabel(): string;          <span class="c">// метка наличия</span>
+    public function toArray(): array;              <span class="c">// -> массив для JSON</span>
+    public static function fromArray(array $row): self;   <span class="c">// массив -> объект</span>
+    public function __toString(): string;          <span class="c">// '#3 Ноутбук — Техника'</span>
+}</code></pre>
+    <ul>
+        <li>в конструкторе проверьте инварианты и бросьте <code>InvalidArgumentException</code>:
+        цена &lt; 0, остаток &lt; 0, скидка вне 0..100;</li>
+        <li><code>priceWithDiscount()</code>: <code>round($price * (100 - $discount) / 100, 2)</code>;</li>
+        <li><code>stockLabel()</code>: через <code>match (true)</code> — 0 «Нет в наличии»,
+        1..5 «Мало», иначе «В наличии»;</li>
+        <li><code>toArray()</code>: ключи <code>id, title, category, price, stock, discount</code>
+        (категория — строкой);</li>
+        <li><code>fromArray()</code>: приводите типы, категорию через
+        <code>Category::tryFrom(...) ?? Category::Tech</code>.</li>
+    </ul>
+<pre><code>$product = new Product(3, 'Наушники JBL Tune', Category::Accessories, 3990.0, 30, 20);
+echo $product-&gt;priceWithDiscount();   <span class="c">// 3192.0</span>
+echo $product-&gt;stockLabel();          <span class="c">// В наличии</span></code></pre>
+
+    <h2>Шаг 3. <code>ProductValidator</code></h2>
+<pre><code>final class ProductValidator
+{
+    /** @return array&lt;string, string&gt; */
+    public function validate(array $input): array;
+}</code></pre>
+    <p>Правила — как в работе 3: название непустое и не короче 3 символов; категория из списка;
+    цена — число больше нуля; остаток — число не меньше нуля; скидка — от 0 до 100.
+    Ключ ошибки — имя поля формы, а пустой массив означает «всё хорошо».</p>
+
+    <h2>Шаг 4. <code>StorageInterface</code></h2>
+<pre><code>interface StorageInterface
+{
+    public function load(): array;
+    public function save(array $rows): void;
+}</code></pre>
+
+    <h2>Шаг 5. <code>JsonFileStorage</code></h2>
+<pre><code>final class JsonFileStorage implements StorageInterface
+{
+    public function __construct(private readonly string $file);
+    public function load(): array;            <span class="c">// ВСЕГДА массив товаров</span>
+    public function save(array $rows): void;  <span class="c">// при сбое — StorageException</span>
+    private function recover(): array;
+    public static function defaultCatalog(): array;   <span class="c">// 8 товаров</span>
+}</code></pre>
+    <p>Логика из работы 4: нет файла → дефолт; <code>json_validate</code> не прошёл или не
+    список → переименовать в <code>.broken.&lt;дата&gt;</code> и взять дефолт; запись —
+    <code>json_encode</code> с <code>JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE</code> и
+    <code>LOCK_EX</code>.</p>
+
+    <h2>Шаг 6. <code>Catalog</code> — коллекция</h2>
+<pre><code>final class Catalog implements Countable, IteratorAggregate
+{
+    public function __construct(array $products = []);
+    public function count(): int;
+    public function getIterator(): Traversable;
+
+    public function all(): array;
+    public function isEmpty(): bool;
+    public function find(int $id): ?Product;
+    public function nextId(): int;
+
+    public function add(Product $product): void;
+    public function update(Product $product): void;    <span class="c">// бросит исключение</span>
+    public function delete(int $id): void;             <span class="c">// бросит исключение</span>
+
+    public function search(string $query): self;
+    public function filterByCategory(Category $category): self;
+    public function sortByPrice(string $direction = 'asc'): self;
+    public function sortByTitle(): self;
+    public function sortByStock(string $direction = 'desc'): self;
+
+    public function paginate(int $page, int $perPage): array;
+    public function stats(): array;
+}</code></pre>
+    <ul>
+        <li>внутри — <code>private array $products</code>; вход в конструкторе прогнать через
+        <code>array_values</code>;</li>
+        <li><code>search</code>, <code>filterByCategory</code>, <code>sortBy*</code> возвращают
+        <strong>новый</strong> <code>Catalog</code> — так методы строятся в цепочку;</li>
+        <li><code>paginate()</code> возвращает <code>items, page, perPage, totalPages, total</code>,
+        страницу зажать в границы <code>[1, totalPages]</code>;</li>
+        <li><code>stats()</code> — <code>products, stock, warehouse, discounted</code>.</li>
+    </ul>
+<pre><code>$found = $catalog-&gt;search('игр')-&gt;filterByCategory(Category::Games)-&gt;sortByPrice('desc');</code></pre>
+
+    <h2>Шаг 7. <code>CatalogRepository</code></h2>
+<pre><code>final class CatalogRepository
+{
+    public function __construct(private readonly StorageInterface $storage);
+    public function load(): Catalog;
+    public function save(Catalog $catalog): void;
+    public function find(int $id): Product;                  <span class="c">// бросит исключение</span>
+    public function create(array $input): Product;
+    public function update(int $id, array $input): Product;  <span class="c">// бросит исключение</span>
+    public function delete(int $id): void;                   <span class="c">// бросит исключение</span>
+}</code></pre>
+    <p><code>load()</code>: строки из хранилища → <code>Product::fromArray()</code> →
+    <code>new Catalog()</code>. <code>save()</code>: <code>toArray()</code> по всем товарам →
+    <code>storage-&gt;save()</code>. <code>create()</code> берёт новый id у
+    <code>$catalog-&gt;nextId()</code>.</p>
+
+    <h2>Шаг 8. <code>Html</code> и исключения</h2>
+<pre><code>final class Html
+{
+    public static function e(string|int|float|null $value): string;
+}
+
+class ProductNotFoundException extends RuntimeException
+{
+    public function __construct(public readonly int $productId);
+}
+
+class StorageException extends RuntimeException {}
+class InvalidArgumentException extends \InvalidArgumentException {}</code></pre>
+
+    <h2>Шаг 9. Страницы приложения</h2>
+    <p><strong><code>app.php</code></strong> — единая сборка:</p>
+<pre><code>require __DIR__ . '/bootstrap.php';
+
+const PER_PAGE = 5;
+
+$storage = new JsonFileStorage(__DIR__ . '/data/catalog.json');
+$repository = new CatalogRepository($storage);
+$validator = new ProductValidator();</code></pre>
+    <p><strong><code>layout.php</code></strong> — функции <code>page_header()</code>,
+    <code>page_footer()</code>, <code>banner()</code>, <code>flash_message()</code>,
+    <code>query_url()</code>, <code>product_form()</code>.</p>
+    <ul>
+        <li><code>index.php</code>: <code>search → filterByCategory → sortBy* → paginate</code>,
+        таблица, пагинация, сообщения;</li>
+        <li><code>add.php</code>: GET — форма; POST — валидация, при успехе
+        <code>create()</code> и редирект <code>index.php?added=N</code>;</li>
+        <li><code>edit.php?id=N</code>: <code>find()</code> в <code>try</code>, в
+        <code>catch (ProductNotFoundException)</code> — 404; при успехе — редирект;</li>
+        <li><code>delete.php?id=N</code>: GET — подтверждение, POST — удаление и редирект
+        <code>index.php?deleted=N</code>.</li>
+    </ul>
+    <p>Все выводы — только через <code>Html::e()</code>; id берётся как
+    <code>$id = (int) ($_GET['id'] ?? 0);</code>.</p>
+
+    <h2>Частые ошибки</h2>
+    <table>
+        <tr><th>Сообщение PHP</th><th>Причина</th></tr>
+        <tr><td><code>Class "App\Product" not found</code></td><td>нет файла, опечатка, не подключён <code>bootstrap.php</code> или не выполнен <code>composer install</code></td></tr>
+        <tr><td><code>must implement interface</code></td><td>не написаны методы интерфейса</td></tr>
+        <tr><td><code>Cannot access private property</code></td><td>обращение к <code>private</code> снаружи</td></tr>
+        <tr><td><code>Cannot modify readonly property</code></td><td>изменение <code>readonly</code> после <code>new</code></td></tr>
+        <tr><td><code>Uncaught ProductNotFoundException</code></td><td>нет <code>try/catch</code> вокруг <code>find()</code></td></tr>
+    </table>
+
+    <h2>Запуск</h2>
+<pre><code>composer install                <span class="c"># один раз: создаст vendor/autoload.php</span>
+php test.php                    <span class="c"># автотесты (классы ищет в src/)</span>
+php -S localhost:8000 -t .      <span class="c"># сайт: http://localhost:8000/index.php</span></code></pre>
+
+    <h2>Критерии приёмки</h2>
+    <ul class="checklist">
+        <li><code>composer install</code> проходит и создаёт <code>vendor/autoload.php</code>;</li>
+        <li><code>php test.php</code> завершается с «ошибок: 0» и кодом <code>0</code>;</li>
+        <li>в <code>src/</code> есть все классы, имена файлов совпадают с классами (PSR-4);</li>
+        <li>добавление → товар в файле и списке;</li>
+        <li>редактирование → изменения видны, id не изменился;</li>
+        <li>удаление → товар исчез, есть сообщение «удалён»;</li>
+        <li><code>edit.php?id=999</code> отдаёт 404 и текст «Товар #999 не найден»;</li>
+        <li>поиск, фильтр и пагинация не «слетают» при переходе по страницам;</li>
+        <li>цена-текст показывает ошибку под полем и не теряет введённое;</li>
+        <li>категория — это <code>Category</code>, а не строка; в коде нет <code>$product['title']</code>.</li>
+    </ul>
+
+    <div class="page-nav">
+        <a href="pr6.html">← К теории работы 6</a>
+        <a href="index.html" class="next">На главную (содержание) →</a>
+    </div>
+
+</main>
+
+</body>
+</html>

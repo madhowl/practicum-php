@@ -9,7 +9,7 @@
 <body>
 
 <header class="site-header">
-    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Сквозной проект «Каталог товаров» · процедурный стиль</small></a>
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Сквозной проект «Каталог товаров» · от процедур к ООП</small></a>
 </header>
 
 <nav class="toc" aria-label="Общее содержание">
@@ -20,14 +20,16 @@
     <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
     <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
     <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">6</span><a href="pr6.html">теория</a><a href="pr6-zadanie.html">задание</a></span>
 </nav>
 
 <main class="content">
 
     <h1>Практикум по PHP 8.3</h1>
-    <p class="lead">Пять практических работ по основам PHP, выполненных в чисто процедурном стиле
-    (без классов и ООП). Каждая работа — самостоятельный, проверяемый этап; вместе они образуют
-    один сквозной проект — веб-витрину «Каталог товаров» с хранением данных в JSON-файле.</p>
+    <p class="lead">Шесть практических работ по основам PHP. Работы 1–5 выполнены в чисто процедурном
+    стиле (без классов и ООП), работа 6 переводит тот же проект на объекты. Каждая работа — самостоятельный,
+    проверяемый этап; вместе они образуют один сквозной проект — веб-витрину «Каталог товаров»
+    с хранением данных в JSON-файле.</p>
 
     <h2>О чём курс</h2>
     <ul>
@@ -35,12 +37,15 @@
         <li>процедурный подход: функции, работа с массивами, поиск, сортировка, пагинация;</li>
         <li>веб-часть: формы <code>GET</code>/<code>POST</code>, валидация, безопасный вывод;</li>
         <li>файлы и JSON: <code>json_encode</code>/<code>json_decode</code>, <code>json_validate</code> (новое в PHP 8.3), обработка ошибок;</li>
-        <li>итоговое приложение: полный CRUD над данными в JSON-файле.</li>
+        <li>итоговое приложение: полный CRUD над данными в JSON-файле;</li>
+        <li>ООП: классы и объекты, инкапсуляция, enum, интерфейсы, исключения, автозагрузка.</li>
     </ul>
 
     <div class="note"><strong>Требования к окружению</strong>
         PHP 8.3+ (<code>php -v</code>) и расширение <code>mbstring</code>
-        (<code>php -m | grep mbstring</code>). Никаких composer, фреймворков и БД не требуется.</div>
+        (<code>php -m | grep mbstring</code>). Для работы 6 нужен ещё Composer —
+        он генерирует автозагрузку классов (<code>composer install</code> в папке
+        <code>pr6</code>). Фреймворки и база данных не требуются.</div>
 
     <h2>Работы</h2>
 
@@ -95,25 +100,38 @@
             </ul>
             <p class="links"><a href="pr5.html">Теория</a><a href="pr5-zadanie.html">Задание</a></p>
         </li>
+        <li>
+            <h2>Работа 6. ООП</h2>
+            <p class="meta">Классы и объекты, инкапсуляция, enum, интерфейсы, полиморфизм, исключения, автозагрузка.</p>
+            <ul>
+                <li>тот же каталог, переписанный на классы;</li>
+                <li>enum <code>Category</code>, интерфейс <code>StorageInterface</code>, внедрение зависимостей;</li>
+                <li>свои исключения, пространства имён и автозагрузка через Composer (PSR-4).</li>
+            </ul>
+            <p class="links"><a href="pr6.html">Теория</a><a href="pr6-zadanie.html">Задание</a></p>
+        </li>
     </ol>
 
     <h2>Покрытие тем по работам</h2>
     <table>
         <tr>
             <th>Тема</th>
-            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th>
         </tr>
-        <tr><td>Переменные, типы, операторы, условия</td><td>✅</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>Циклы, match</td><td>✅</td><td></td><td></td><td></td><td>✅</td></tr>
-        <tr><td>Индексированные/ассоциативные массивы</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td></tr>
-        <tr><td>Функции, области видимости</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td></tr>
-        <tr><td>Сортировки, пагинация</td><td></td><td>✅</td><td></td><td></td><td>✅</td></tr>
-        <tr><td>Строки, regex, GET/POST</td><td></td><td></td><td>✅</td><td></td><td>✅</td></tr>
-        <tr><td>Валидация, XSS (htmlspecialchars)</td><td></td><td></td><td>✅</td><td></td><td>✅</td></tr>
-        <tr><td>Чтение/запись файлов</td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>JSON, json_validate (8.3)</td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>Обработка ошибок и 404</td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>CRUD, редиректы (PRG)</td><td></td><td></td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Переменные, типы, операторы, условия</td><td>✅</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>Циклы, match</td><td>✅</td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Индексированные/ассоциативные массивы</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Функции, области видимости</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td><td></td></tr>
+        <tr><td>Сортировки, пагинация</td><td></td><td>✅</td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Строки, regex, GET/POST</td><td></td><td></td><td>✅</td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Валидация, XSS (htmlspecialchars)</td><td></td><td></td><td>✅</td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Чтение/запись файлов</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>JSON, json_validate (8.3)</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Обработка ошибок и 404</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>CRUD, редиректы (PRG)</td><td></td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Классы, объекты, инкапсуляция</td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Enum, интерфейсы, полиморфизм</td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Исключения, автозагрузка (PSR-4)</td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
     </table>
 
     <h2>Быстрый запуск</h2>
@@ -124,14 +142,16 @@
 php pr2/test.php
 php pr3/test.php
 php pr4/test.php
-php pr5/test.php</code></pre>
-            <p style="margin:6px 0 0">В конце каждой проверки — «ошибок: 0».</p>
+php pr5/test.php
+php pr6/test.php</code></pre>
+            <p style="margin:6px 0 0">В конце каждой проверки — «ошибок: 0».
+            Перед <code>pr6</code> один раз выполните <code>composer install</code> в папке <code>pr6</code>.</p>
         </div>
         <div class="start-card">
             <strong>Итоговое приложение</strong>
             <pre><code>php -S localhost:8000 -t pr5</code></pre>
             <p style="margin:6px 0 0">Открыть <a class="kbd-link" href="http://localhost:8000/index.php">localhost:8000/index.php</a>.
-            Работы 3–4 запускаются аналогично: <code>-t pr3</code>, <code>-t pr4</code>.</p>
+            Работы 3–6 запускаются аналогично: <code>-t pr3</code>, <code>-t pr4</code>, <code>-t pr6</code>.</p>
         </div>
         <div class="start-card">
             <strong>Консольные демо</strong>
@@ -141,15 +161,15 @@ php pr2/solution.php</code></pre>
         </div>
     </div>
 
-    <p>Исходный код и автотесты лежат в папках <code>pr1</code>…<code>pr5</code> рядом с этим
-    сайтом. Данные приложение хранит в <code>pr4/data/catalog.json</code> и
-    <code>pr5/data/catalog.json</code>: если файл удалить или испортить, приложение
-    само восстановит каталог по умолчанию.</p>
+    <p>Исходный код и автотесты лежат в папках <code>pr1</code>…<code>pr6</code> рядом с этим
+    сайтом. Данные приложение хранит в <code>pr4/data/catalog.json</code>,
+    <code>pr5/data/catalog.json</code> и <code>pr6/data/catalog.json</code>: если файл удалить
+    или испортить, приложение само восстановит каталог по умолчанию.</p>
 
 </main>
 
 <footer class="site-footer">
-    Практикум по PHP 8.3 · процедурный PHP, без ООП · файлы + массивы + JSON
+    Практикум по PHP 8.3 · от процедурного PHP к ООП · файлы + массивы + JSON + классы
 </footer>
 
 </body>

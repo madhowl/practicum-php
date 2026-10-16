@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 6. ООП — теория</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 6. ООП: каталог на классах</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">6</span><a href="pr6.html" class="active">теория</a><a href="pr6-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 6 / Теория</p>
+    <h1>Работа 6. ООП: каталог на классах</h1>
+    <p class="lead">До этой работы весь каталог был написан в процедурном стиле: данные
+    лежали в массивах, а действия — в отдельных функциях (<code>add_product</code>,
+    <code>find_product</code>, <code>validate_product</code>). Теперь мы перепишем ту же
+    логику на объекты. Конспект подробный: каждое новое слово объясняется простыми
+    словами и сразу показывается в коде. Знаний ООП заранее не предполагается.</p>
+
+    <div class="note"><strong>Как устроен конспект</strong>
+        Материал разбит на три части:
+        <ul>
+            <li><strong>Часть I. Основы</strong> (разделы 1–5): класс, объект, свойства,
+            конструктор, инкапсуляция;</li>
+            <li><strong>Часть II. Поведение и типы</strong> (разделы 6–11): статические члены,
+            перечисления, интерфейсы, наследование, исключения, магические методы;</li>
+            <li><strong>Часть III. Организация кода</strong> (разделы 12–13): пространства имён,
+            Composer, сборка проекта вместе.</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <h2>Часть I. Основы</h2>
+
+    <h3>1. Зачем нужно ООП</h3>
+
+    <h4>1.1. Как выглядит процедурный код и что в нём не так</h4>
+    <p>Начнём с задачи: посчитать цену товара со скидкой. В процедурном стиле это выглядит так:</p>
+<pre><code>function price_with_discount(int $price, int $discount): float
+{
+    return round($price * (100 - $discount) / 100, 2);
+}
+
+$product = ['title' =&gt; 'Ноутбук', 'price' =&gt; 54990, 'discount' =&gt; 10];
+echo price_with_discount($product['price'], $product['discount']);</code></pre>
+    <p>Пока товар один и программа маленькая, всё хорошо. Но приложение растёт: появляются
+    добавление товара, поиск, сортировка, сохранение в файл, валидация формы. И тут
+    начинаются проблемы:</p>
+    <ol>
+        <li><strong>Массив — «мешок без правил».</strong> Функция ожидает два числа, но никто
+        не мешает вызвать <code>price_with_discount('дорого', [])</code> — программа упадёт
+        во время работы, а не при написании кода.</li>
+        <li><strong>Структура не проверяется.</strong> Если в одном месте товар описан ключом
+        <code>'cost'</code>, а в другом <code>'price'</code>, PHP не подскажет ошибку —
+        просто получится пустое значение.</li>
+        <li><strong>Данные и логика врозь.</strong> Цена, скидка и правило расчёта — это одно
+        понятие «товар», но живут они в разных местах: массив с данными отдельно, функция
+        отдельно.</li>
+        <li><strong>Всё связано со всем.</strong> Изменение структуры товара затрагивает
+        десяток файлов.</li>
+    </ol>
+    <p>Ключевой недостаток: <strong>программа не знает про предметную область ничего, кроме
+    «это массив с какими-то ключами»</strong>.</p>
+
+    <h4>1.2. Та же задача через объект</h4>
+<pre><code>$product = new Product(1, 'Ноутбук', Category::Tech, 54990.0, 12, 10);
+echo $product-&gt;priceWithDiscount();</code></pre>
+    <p>Здесь товар — <strong>единое целое</strong>: в нём и данные (название, цена, скидка),
+    и действия над ними. Типы проверяются при создании. Читается как обычный язык:
+    «у товара узнай цену со скидкой».</p>
+
+    <h4>1.3. Аналогия «чертёж и изделие»</h4>
+    <p><strong>Класс</strong> — это чертёж. В чертеже описано, из чего состоит изделие и что
+    оно умеет, но самого изделия ещё нет. <strong>Объект</strong> — конкретное изделие,
+    сделанное по чертежу.</p>
+    <ul>
+        <li>по чертежу «Дом» строят много разных домов (разной площади, цвета);</li>
+        <li>по классу <code>Product</code> создают много разных товаров (разные названия, цены);</li>
+        <li>чертёж один; изделий — сколько угодно, и у каждого свои значения.</li>
+    </ul>
+    <p>Ещё одна аналогия: класс — форма для печенья, объект — само печенье. Форма задаёт,
+    какой будет фигура; каждое печенье при этом отдельное.</p>
+
+    <h4>1.4. Три кита ООП</h4>
+    <ul>
+        <li><strong>Инкапсуляция</strong> — объект прячет свои данные и сам следит, чтобы они
+        оставались верными;</li>
+        <li><strong>Наследование</strong> — один класс может взять поведение другого и
+        дополнить его;</li>
+        <li><strong>Полиморфизм</strong> — разные классы можно использовать через общий
+        «договор» (интерфейс), и код не будет знать, какой именно класс ему достался.</li>
+    </ul>
+
+    <h4>1.5. Когда ООП помогает, а когда нет</h4>
+    <p>ООП — не самоцель. Небольшой скрипт из десяти строк выиграет от процедурного стиля.
+    ООП стоит применять, когда:</p>
+    <ul>
+        <li>у одного понятия есть и данные, и правила (товар, заказ, корзина);</li>
+        <li>понятий много и их нужно описывать как типы;</li>
+        <li>важен повторяемый «договор» между частями программы;</li>
+        <li>проект будет расти, и хочется менять одну часть, не ломая другие.</li>
+    </ul>
+
+    <h4>1.6. Итог раздела</h4>
+    <ul>
+        <li>массив не описывает тип: сколько полей, какие ключи, какие типы;</li>
+        <li>класс описывает и данные, и поведение, и правила;</li>
+        <li>объект — конкретный экземпляр класса со своими значениями;</li>
+        <li>ООП помогает, когда понятий много и между ними нужно чёткое разделение.</li>
+    </ul>
+
+    <h3>2. Класс и объект</h3>
+
+    <h4>2.1. Объявление класса</h4>
+    <p>Класс объявляется словом <code>class</code>, имя принято писать с большой буквы.
+    Внутри класса живут <strong>свойства</strong> (переменные) и <strong>методы</strong>
+    (функции) — вместе их называют <strong>членами класса</strong>.</p>
+<pre><code>class Product
+{
+    <span class="c">// свойства: у каждого объекта свои значения</span>
+    public int $id;
+    public string $title;
+    public float $price;
+
+    <span class="c">// метод: действие над объектом</span>
+    public function priceWithDiscount(): float
+    {
+        return $this-&gt;price;
+    }
+}</code></pre>
+    <ul>
+        <li><code>public</code> — <strong>модификатор доступа</strong>: «видно снаружи» (раздел 5);</li>
+        <li><code>int $id</code> — <strong>типизированное свойство</strong>: только целое число;</li>
+        <li><code>function priceWithDiscount(): float</code> — метод, возвращающий дробное число;</li>
+        <li><code>$this</code> — ссылка на <strong>тот самый объект</strong>, у которого вызван метод.</li>
+    </ul>
+
+    <h4>2.2. Что такое «состояние» и «поведение»</h4>
+    <ul>
+        <li><strong>состояние</strong> — значения свойств: <code>id = 1</code>,
+        <code>title = 'Ноутбук'</code>, <code>price = 54990</code>;</li>
+        <li><strong>поведение</strong> — методы: <code>priceWithDiscount</code>,
+        <code>stockLabel</code>.</li>
+    </ul>
+    <p>В хорошем классе данные и поведение связаны: поведение работает именно с состоянием
+    этого объекта.</p>
+
+    <h4>2.3. Создание объекта: слово <code>new</code></h4>
+<pre><code>$product = new Product();   <span class="c">// создали объект</span>
+$product-&gt;id = 1;           <span class="c">// записали свойство</span>
+$product-&gt;title = 'Ноутбук';
+$product-&gt;price = 54990.0;
+
+echo $product-&gt;title;               <span class="c">// Ноутбук</span>
+echo $product-&gt;priceWithDiscount(); <span class="c">// 54990.0</span></code></pre>
+
+    <h4>2.4. Обращение к методам и свойствам: оператор <code>-&gt;</code></h4>
+<pre><code>$product-&gt;title;                 <span class="c">// свойство</span>
+$product-&gt;priceWithDiscount();   <span class="c">// метод (со скобками)</span></code></pre>
+    <p>Скобки обязательны: без них PHP решит, что вы обращаетесь к свойству. Внутри класса
+    к своим членам обращаются через <code>$this-&gt;</code>.</p>
+
+    <h4>2.5. Несколько объектов независимы</h4>
+<pre><code>$notebook = new Product();
+$notebook-&gt;title = 'Ноутбук';
+
+$mouse = new Product();
+$mouse-&gt;title = 'Мышь';
+
+echo $notebook-&gt;title; <span class="c">// Ноутбук — не изменилось</span>
+echo $mouse-&gt;title;    <span class="c">// Мышь</span></code></pre>
+    <p>Объекты не делят состояние между собой. Если нужно общее значение для всех — это
+    делается через <code>static</code> (раздел 6).</p>
+
+    <h4>2.6. Что печатает <code>var_dump</code> для объекта</h4>
+<pre><code>var_dump($notebook);
+<span class="c">// object(Product)#1 (3) {</span>
+<span class="c">//   ["id"]=&gt; int(1)</span>
+<span class="c">//   ["title"]=&gt; string(14) "Ноутбук"</span>
+<span class="c">//   ["price"]=&gt; float(54990)</span>
+<span class="c">// }</span></code></pre>
+    <p><code>print_r</code> и <code>var_export</code> тоже умеют показывать объекты — удобно
+    при отладке.</p>
+
+    <h4>2.7. <code>instanceof</code> — проверка класса</h4>
+<pre><code>if ($product instanceof Product) {
+    echo 'Это товар';
+}</code></pre>
+    <p><code>instanceof</code> проверяет не только сам класс, но и его родителей, и
+    реализованные интерфейсы.</p>
+
+    <h4>2.8. Сравнение объектов: <code>==</code> и <code>===</code></h4>
+<pre><code>$a = new Product();
+$a-&gt;id = 1;
+$a-&gt;title = 'Ноутбук';
+
+$b = new Product();
+$b-&gt;id = 1;
+$b-&gt;title = 'Ноутбук';
+
+$a == $b;    <span class="c">// true  — объекты «похожи»: те же класс и значения свойств</span>
+$a === $b;   <span class="c">// false — это РАЗНЫЕ объекты в памяти</span></code></pre>
+    <p><code>==</code> сравнивает значения свойств, <code>===</code> — идентичность. Два
+    объекта из двух <code>new</code> — всегда разные.</p>
+
+    <h4>2.9. Объекты передаются «по ссылке»</h4>
+<pre><code>function rename(Product $product): void
+{
+    $product-&gt;title = 'Переименовано';
+}
+
+$notebook = new Product();
+rename($notebook);
+echo $notebook-&gt;title;   <span class="c">// Переименовано</span></code></pre>
+    <p>Это удобно, но требует аккуратности. Именно поэтому часто делают объекты
+    <strong>неизменяемыми</strong> (<code>readonly</code>, раздел 5).</p>
+
+    <h4>2.10. Типичные ошибки новичка</h4>
+    <ul>
+        <li>забыли <code>new</code>: <code>$p = Product();</code> — нельзя, нужно <code>$p = new Product();</code>;</li>
+        <li>поставили <code>$</code> у имени свойства после <code>-&gt;</code>: правильно
+        <code>$p-&gt;title</code>, а <strong>не</strong> <code>$p-&gt;$title</code>;</li>
+        <li>забыли скобки у метода: <code>$p-&gt;priceWithDiscount</code>;</li>
+        <li>используют <code>$this</code> вне метода — снаружи класса его нет;</li>
+        <li>надеются, что <code>==</code> и <code>===</code> для объектов означают одно и то же.</li>
+    </ul>
+
+    <h4>2.11. Итог раздела</h4>
+    <ul>
+        <li>класс — описание, объект — конкретный экземпляр;</li>
+        <li><code>new</code> создаёт объект, <code>-&gt;</code> обращается к его членам,
+        <code>$this</code> — «этот объект»;</li>
+        <li>объекты независимы, сравниваются по <code>==</code> и <code>===</code>, передаются по ссылке.</li>
+    </ul>
+
+    <h3>3. Свойства: типы и значения по умолчанию</h3>
+
+    <h4>3.1. Зачем указывать тип</h4>
+<pre><code>class Product
+{
+    public int $id;                  <span class="c">// только целое</span>
+    public string $title = '';       <span class="c">// строка, по умолчанию пустая</span>
+    public float $price = 0.0;       <span class="c">// дробное</span>
+    public int $stock = 0;           <span class="c">// целое, 0 — допустимо</span>
+    public bool $available = false;  <span class="c">// логическое</span>
+}</code></pre>
+<pre><code>$p = new Product();
+$p-&gt;id = 'один';   <span class="c">// TypeError: cannot assign string to property of type int</span></code></pre>
+
+    <h4>3.2. Значения по умолчанию</h4>
+    <p>Свойство может иметь начальное значение. Если его нет, свойство при создании объекта
+    считается <strong>неинициализированным</strong>:</p>
+<pre><code>class Product
+{
+    public int $id;   <span class="c">// без значения по умолчанию</span>
+}
+
+$p = new Product();
+echo $p-&gt;id;          <span class="c">// Error: must not be accessed before initialization</span></code></pre>
+
+    <h4>3.3. Nullable-типы: <code>?Type</code></h4>
+<pre><code>public ?string $description = null;   <span class="c">// строка ИЛИ null</span>
+public ?Category $category = null;</code></pre>
+
+    <h4>3.4. Объединённые (union) типы</h4>
+<pre><code>public int|string $code;      <span class="c">// либо число, либо строка</span>
+public int|float $amount = 0; <span class="c">// целое или дробное</span></code></pre>
+
+    <h4>3.5. Специальные типы <code>mixed</code> и <code>void</code></h4>
+    <ul>
+        <li><code>mixed</code> — «любое значение» (используйте редко, он теряет проверку типов);</li>
+        <li><code>void</code> — «метод ничего не возвращает» (для возвращаемого типа).</li>
+    </ul>
+<pre><code>public function dump(mixed $value): void
+{
+    var_dump($value);   <span class="c">// ничего не возвращаем</span>
+}</code></pre>
+
+    <h4>3.6. Статические свойства (кратко)</h4>
+<pre><code>class Counter
+{
+    public static int $created = 0;
+
+    public function __construct()
+    {
+        self::$created++;   <span class="c">// общий счётчик для всех объектов</span>
+    }
+}
+
+new Counter();
+new Counter();
+echo Counter::$created;     <span class="c">// 2</span></code></pre>
+
+    <h4>3.7. Типичные ошибки новичка</h4>
+    <ul>
+        <li>путают объявление свойства (<code>public int $id;</code>) с обычной переменной;</li>
+        <li>записывают строку в <code>int</code>-свойство и удивляются ошибке типа;</li>
+        <li>забывают про неинициализированное свойство;</li>
+        <li>вместо <code>?Type</code> пытаются «разрешить null» как-то иначе.</li>
+    </ul>
+
+    <h4>3.8. Итог раздела</h4>
+    <ul>
+        <li>у свойства есть тип и, возможно, значение по умолчанию;</li>
+        <li><code>?Type</code> разрешает <code>null</code>, <code>A|B</code> — несколько типов,
+        <code>mixed</code> — любой, <code>void</code> — «ничего не вернуть»;</li>
+        <li>типы ловят ошибки на раннем этапе.</li>
+    </ul>
+
+    <h3>4. Конструктор</h3>
+
+    <h4>4.1. Проблема постепенного заполнения</h4>
+<pre><code>$product = new Product();
+$product-&gt;id = 1;
+$product-&gt;title = 'Ноутбук';
+<span class="c">// забыли price — и объект уже нельзя считать полноценным</span></code></pre>
+    <p><strong>Конструктор</strong> решает эту проблему: это метод <code>__construct</code>,
+    который PHP вызывает автоматически в момент <code>new</code>.</p>
+
+    <h4>4.2. Обычный конструктор</h4>
+<pre><code>class Product
+{
+    public int $id;
+    public string $title;
+    public float $price;
+
+    public function __construct(int $id, string $title, float $price)
+    {
+        $this-&gt;id = $id;
+        $this-&gt;title = $title;
+        $this-&gt;price = $price;
+    }
+}
+
+$product = new Product(1, 'Ноутбук', 54990.0);</code></pre>
+
+    <h4>4.3. Сокращённая запись: property promotion</h4>
+<pre><code>class Product
+{
+    public function __construct(
+        public int $id,
+        public string $title,
+        public float $price,
+    ) {
+    }
+}</code></pre>
+    <p>Этот код эквивалентен «длинной» записи. Такой приём называется <strong>property
+    promotion</strong>. «Под капотом» PHP сам объявляет свойство и присваивает ему значение.</p>
+
+    <h4>4.4. Значения по умолчанию в конструкторе</h4>
+<pre><code>class Product
+{
+    public function __construct(
+        public int $id,
+        public string $title,
+        public float $price = 0.0,
+        public int $discount = 0,
+    ) {
+    }
+}
+
+new Product(1, 'Ноутбук');              <span class="c">// discount = 0</span>
+new Product(2, 'Мышь', 1990.0, 10);     <span class="c">// discount = 10</span></code></pre>
+    <p>Необязательные параметры должны идти <strong>после</strong> обязательных.</p>
+
+    <h4>4.5. Именованные аргументы</h4>
+<pre><code>$product = new Product(
+    id: 3,
+    title: 'Наушники',
+    price: 3990.0,
+    discount: 20,
+);</code></pre>
+
+    <h4>4.6. Проверки в конструкторе (инварианты)</h4>
+<pre><code>final class Product
+{
+    public function __construct(
+        public readonly int $id,
+        public readonly string $title,
+        public readonly float $price,
+    ) {
+        if ($price &lt; 0) {
+            throw new InvalidArgumentException('Цена не может быть отрицательной');
+        }
+    }
+}
+
+new Product(1, 'Ноутбук', -5);   <span class="c">// исключение — товар не создан</span></code></pre>
+    <p>Такие правила называют <strong>инвариантами</strong>: условия, при которых объект
+    имеет право существовать.</p>
+
+    <h4>4.7. <code>new</code> как выражение</h4>
+<pre><code>$labels = array_map(
+    fn (Product $product): string =&gt; $product-&gt;title,
+    [new Product(1, 'A', 1.0), new Product(2, 'B', 2.0)]
+);</code></pre>
+
+    <h4>4.8. Типичные ошибки новичка</h4>
+    <ul>
+        <li>вызвать конструктор как обычный метод (<code>$p-&gt;__construct(...)</code>) — не нужно;</li>
+        <li>забыть передать обязательный аргумент;</li>
+        <li>при promotion написать <code>$this-&gt;public int $id</code>;</li>
+        <li>поставить необязательный параметр перед обязательным.</li>
+    </ul>
+
+    <h4>4.9. Итог раздела</h4>
+    <ul>
+        <li>конструктор гарантирует, что объект сразу получает нужные данные;</li>
+        <li>property promotion и именованные аргументы делают код короче;</li>
+        <li>проверки в конструкторе защищают инварианты объекта.</li>
+    </ul>
+
+    <h3>5. Инкапсуляция и readonly</h3>
+
+    <h4>5.1. Что такое инкапсуляция</h4>
+    <p><strong>Инкапсуляция</strong> — это когда объект прячет внутренние данные и не даёт
+    сломать себя снаружи. Управляют доступом три слова:</p>
+    <table>
+        <tr><th>Слово</th><th>Кто видит свойство или метод</th></tr>
+        <tr><td><code>public</code></td><td>все: и внутри класса, и снаружи</td></tr>
+        <tr><td><code>protected</code></td><td>сам класс и его наследники (раздел 9)</td></tr>
+        <tr><td><code>private</code></td><td>только сам класс, снаружи недоступно</td></tr>
+    </table>
+
+    <h4>5.2. Почему открытые данные опасны</h4>
+<pre><code>$product-&gt;price = -100;   <span class="c">// бессмысленный товар</span></code></pre>
+    <p>Если свойство <code>private</code>, снаружи к нему не подобраться:</p>
+<pre><code>$p-&gt;price = -100;   <span class="c">// Error: Cannot access private property</span></code></pre>
+
+    <h4>5.3. Геттеры: контролируемое чтение</h4>
+<pre><code>class Product
+{
+    private float $price;
+
+    public function __construct(float $price)
+    {
+        if ($price &lt; 0) {
+            throw new InvalidArgumentException('Цена не может быть отрицательной');
+        }
+        $this-&gt;price = $price;
+    }
+
+    public function price(): float
+    {
+        return $this-&gt;price;
+    }
+}
+
+$p = new Product(100.0);
+echo $p-&gt;price();   <span class="c">// 100.0</span></code></pre>
+
+    <h4>5.4. Управляемое изменение через методы</h4>
+<pre><code>public function applyDiscount(float $discount): void
+{
+    if ($discount &lt; 0 || $discount &gt; 100) {
+        throw new InvalidArgumentException('Скидка должна быть от 0 до 100');
+    }
+    $this-&gt;discount = $discount;
+}</code></pre>
+
+    <h4>5.5. <code>readonly</code>: неизменяемые объекты</h4>
+<pre><code>final class Product
+{
+    public function __construct(
+        public readonly int $id,
+        public readonly string $title,
+        public readonly float $price,
+    ) {
+        if ($price &lt; 0) {
+            throw new InvalidArgumentException('Цена не может быть отрицательной');
+        }
+    }
+}
+
+$p = new Product(1, 'Ноутбук', 54990.0);
+$p-&gt;price = 100;   <span class="c">// Error: Cannot modify readonly property</span></code></pre>
+    <p><code>readonly</code>-свойство задаётся ровно один раз — в конструкторе. Такой объект
+    называют <strong>неизменяемым</strong>. Чтобы «поменять» товар, создают новый объект.</p>
+
+    <h4>5.6. <code>final</code> — от класса нельзя наследоваться</h4>
+<pre><code>final class Product { /* ... */ }
+
+<span class="c">// class DiscountedProduct extends Product {}  // Error: cannot extend final class</span></code></pre>
+
+    <h4>5.7. Приватный метод-помощник</h4>
+<pre><code>final class Product
+{
+    public function __construct(
+        public readonly float $price,
+        public readonly int $discount,
+    ) {
+    }
+
+    public function priceWithDiscount(): float
+    {
+        return $this-&gt;apply($this-&gt;price, $this-&gt;discount);
+    }
+
+    private function apply(float $price, int $discount): float
+    {
+        return round($price * (100 - $discount) / 100, 2);
+    }
+}</code></pre>
+    <p>Снаружи <code>apply()</code> не виден: это деталь реализации. Наружу выставлено только
+    необходимое — «узкий интерфейс» класса.</p>
+
+    <h4>5.8. Типичные ошибки новичка</h4>
+    <ul>
+        <li>пытаться изменить <code>readonly</code>-свойство после создания объекта;</li>
+        <li>обращаться снаружи к <code>private</code>-свойству;</li>
+        <li>делать все свойства <code>public</code> «чтобы проще»;</li>
+        <li>забывать, что <code>final</code>-класс нельзя наследовать.</li>
+    </ul>
+
+    <h4>5.9. Итог раздела</h4>
+    <ul>
+        <li>инкапсуляция прячет данные и защищает инварианты;</li>
+        <li>геттеры и методы изменения дают контролируемый доступ;</li>
+        <li><code>readonly</code> делает объект неизменяемым, <code>final</code> запрещает наследование.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Часть II. Поведение и типы</h2>
+
+    <h3>6. <code>static</code>, константы класса и <code>::</code> против <code>-&gt;</code></h3>
+
+    <h4>6.1. Что значит «принадлежит классу»</h4>
+    <p>Обычный метод или свойство принадлежит <strong>объекту</strong>. Но иногда значение
+    относится ко <strong>всему классу</strong>. Такие члены называют
+    <strong>статическими</strong> и помечают словом <code>static</code>.</p>
+
+    <h4>6.2. Статический метод</h4>
+<pre><code>class Html
+{
+    public static function e(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+echo Html::e('&lt;b&gt;привет&lt;/b&gt;'); <span class="c">// &amp;lt;b&amp;gt;привет&amp;lt;/b&amp;gt;</span></code></pre>
+    <p>Внутри статического метода <strong>нет</strong> <code>$this</code>. К другой статике
+    того же класса обращаются через <code>self::</code>.</p>
+
+    <h4>6.3. Константы класса</h4>
+<pre><code>class Config
+{
+    public const PER_PAGE = 5;
+
+    public static function perPage(): int
+    {
+        return self::PER_PAGE;
+    }
+}
+
+echo Config::PER_PAGE;    <span class="c">// 5</span>
+echo Config::perPage();   <span class="c">// 5</span></code></pre>
+
+    <h4>6.4. Статические свойства</h4>
+<pre><code>class Counter
+{
+    public static int $created = 0;
+
+    public function __construct()
+    {
+        self::$created++;
+    }
+}
+
+new Counter();
+new Counter();
+echo Counter::$created;   <span class="c">// 2</span></code></pre>
+    <p>Обратите внимание на <code>self::$created</code>: у статических свойств тоже есть
+    знак <code>$</code>.</p>
+
+    <h4>6.5. Статическая фабрика</h4>
+<pre><code>final class Product
+{
+    public function __construct(
+        public readonly int $id,
+        public readonly string $title,
+        public readonly float $price,
+    ) {
+    }
+
+    <span class="c">// фабрика: собрать товар из массива (например, из JSON)</span>
+    public static function fromArray(array $row): self
+    {
+        return new self(
+            id: (int) ($row['id'] ?? 0),
+            title: (string) ($row['title'] ?? ''),
+            price: (float) ($row['price'] ?? 0),
+        );
+    }
+}</code></pre>
+    <p><code>new self(...)</code> означает «создать объект того же класса». Такой метод
+    вызывают <code>Product::fromArray($row)</code>.</p>
+
+    <h4>6.6. Аннотация <code>@return self</code></h4>
+<pre><code>/** @return Product[] */
+public function all(): array
+{
+    return $this-&gt;products;
+}</code></pre>
+    <p>Аннотация не проверяется PHP, но помогает редактору при автодополнении.</p>
+
+    <h4>6.7. <code>::</code> против <code>-&gt;</code>: шпаргалка</h4>
+    <table>
+        <tr><th>Запись</th><th>К чему обращаемся</th><th>Пример</th></tr>
+        <tr><td><code>$obj-&gt;method()</code></td><td>метод объекта</td><td><code>$product-&gt;price()</code></td></tr>
+        <tr><td><code>$obj-&gt;prop</code></td><td>свойство объекта</td><td><code>$product-&gt;title</code></td></tr>
+        <tr><td><code>Class::method()</code></td><td>статический метод</td><td><code>Html::e($x)</code></td></tr>
+        <tr><td><code>Class::CONST</code></td><td>константа класса</td><td><code>Config::PER_PAGE</code></td></tr>
+        <tr><td><code>self::method()</code></td><td>статика внутри класса</td><td><code>self::perPage()</code></td></tr>
+        <tr><td><code>self::$prop</code></td><td>статическое свойство</td><td><code>self::$created</code></td></tr>
+    </table>
+
+    <h4>6.8. Типичные ошибки новичка</h4>
+    <ul>
+        <li><code>$product::priceWithDiscount()</code> — так к обычному методу не обращаются;</li>
+        <li><code>Html-&gt;e(...)</code> — статический метод вызывается через <code>::</code>;</li>
+        <li>использовать <code>$this</code> в статическом методе;</li>
+        <li>забыть <code>$</code> у статического свойства: нужно <code>self::$created</code>.</li>
+    </ul>
+
+    <h4>6.9. Итог раздела</h4>
+    <ul>
+        <li><code>static</code> — «принадлежит классу, а не объекту»;</li>
+        <li>статические методы и константы вызывают через <code>::</code>;</li>
+        <li>статические фабрики (<code>fromArray</code>) удобны для создания объектов из данных.</li>
+    </ul>
+
+    <h3>7. Перечисления <code>enum</code></h3>
+
+    <h4>7.1. Проблема строковых категорий</h4>
+    <p>В процедурном коде категория была строкой: <code>'Техника'</code>. Строку легко
+    опечатать, и PHP об этом не предупредит. <strong>Перечисление</strong>
+    (<code>enum</code>) — это тип с заранее известным списком допустимых значений.</p>
+
+    <h4>7.2. Объявление enum</h4>
+<pre><code>enum Category: string
+{
+    case Tech = 'Техника';
+    case Games = 'Игры';
+    case Accessories = 'Аксессуары';
+}</code></pre>
+    <ul>
+        <li>каждый вариант — это <code>case</code>;</li>
+        <li><code>: string</code> означает, что у варианта есть строковое значение
+        (<code>-&gt;value</code>);</li>
+        <li>один и тот же вариант — это один и тот же объект.</li>
+    </ul>
+
+    <h4>7.3. Методы внутри enum</h4>
+<pre><code>enum Category: string
+{
+    case Tech = 'Техника';
+    case Games = 'Игры';
+    case Accessories = 'Аксессуары';
+
+    public function label(): string
+    {
+        return $this-&gt;value;          <span class="c">// человекочитаемое название</span>
+    }
+
+    public static function labels(): array
+    {
+        return array_map(
+            fn (self $category): string =&gt; $category-&gt;value,
+            self::cases()
+        );
+    }
+}</code></pre>
+
+    <h4>7.4. Работа со значениями</h4>
+<pre><code>Category::Tech-&gt;value;              <span class="c">// 'Техника'  — строковое значение</span>
+Category::Games-&gt;label();           <span class="c">// 'Игры'     — метод у варианта</span>
+Category::from('Аксессуары');       <span class="c">// Category::Accessories</span>
+Category::tryFrom('Ерунда');        <span class="c">// null</span>
+Category::cases();                  <span class="c">// все варианты</span>
+Category::labels();                 <span class="c">// ['Техника', 'Игры', 'Аксессуары']</span></code></pre>
+    <ul>
+        <li><code>from()</code> бросает ошибку, если значения нет в списке;</li>
+        <li><code>tryFrom()</code> в этом случае возвращает <code>null</code> — им удобно
+        проверять данные из формы или файла.</li>
+    </ul>
+
+    <h4>7.5. enum и <code>match</code></h4>
+<pre><code>public function shortName(): string
+{
+    return match ($this) {
+        self::Tech =&gt; 'Тех',
+        self::Games =&gt; 'Игры',
+        self::Accessories =&gt; 'Акс',
+    };
+}</code></pre>
+    <p><code>match</code> без <code>default</code> требует перечислить <strong>все</strong>
+    варианты — хорошая защита.</p>
+
+    <h4>7.6. Перебор вариантов</h4>
+<pre><code>$options = '';
+foreach (Category::cases() as $category) {
+    $options .= '&lt;option value="' . $category-&gt;value . '"&gt;'
+        . $category-&gt;label() . '&lt;/option&gt;';
+}</code></pre>
+
+    <h4>7.7. enum как тип</h4>
+<pre><code>final class Product
+{
+    public function __construct(
+        public readonly string $title,
+        public readonly Category $category,   <span class="c">// только Category, не строка</span>
+    ) {
+    }
+}</code></pre>
+
+    <h4>7.8. Почему это лучше строки</h4>
+    <ul>
+        <li>опечатка невозможна — компилятор подсказывает варианты;</li>
+        <li>сравнение <code>===</code> надёжно;</li>
+        <li>в <code>match</code> — проверка полноты;</li>
+        <li>редактор подсказывает, какие категории существуют.</li>
+    </ul>
+
+    <h4>7.9. Типичные ошибки новичка</h4>
+    <ul>
+        <li>сравнить enum со строкой: <code>$category === 'Техника'</code> не сработает — нужно
+        <code>$category === Category::Tech</code> или <code>$category-&gt;value === 'Техника'</code>;</li>
+        <li>использовать <code>from()</code> на «сырых» данных формы без обработки ошибки —
+        лучше <code>tryFrom()</code> и проверка на <code>null</code>;</li>
+        <li>забыть <code>: string</code>, если нужен <code>-&gt;value</code>.</li>
+    </ul>
+
+    <h4>7.10. Итог раздела</h4>
+    <ul>
+        <li><code>enum</code> — строгий список допустимых значений;</li>
+        <li><code>from()</code>/<code>tryFrom()</code> переводят строку в вариант,
+        <code>-&gt;value</code> и методы — обратно;</li>
+        <li>enum делает категорию типом, а не строкой.</li>
+    </ul>
+
+    <h3>8. Интерфейсы и полиморфизм</h3>
+
+    <h4>8.1. Что такое интерфейс</h4>
+    <p><strong>Интерфейс</strong> — это «договор» или «список обязанностей»: методы без
+    реализации, которые класс, подписавший контракт словом <code>implements</code>, обязан
+    написать.</p>
+    <p><strong>Аналогия.</strong> Розетка — это интерфейс: у неё фиксированная форма. Любой
+    прибор с подходящей вилкой можно включить, и розетке не важно, чайник это или зарядка.</p>
+
+    <h4>8.2. Объявление интерфейса</h4>
+<pre><code>interface StorageInterface
+{
+    /** @return array&lt;int, array&lt;string, mixed&gt;&gt; */
+    public function load(): array;
+
+    /** @param array&lt;int, array&lt;string, mixed&gt;&gt; $rows */
+    public function save(array $rows): void;
+}</code></pre>
+
+    <h4>8.3. Реализация интерфейса</h4>
+<pre><code>final class JsonFileStorage implements StorageInterface
+{
+    public function __construct(private readonly string $file)
+    {
+    }
+
+    public function load(): array
+    {
+        <span class="c">// ... читает файл, чинит испорченный, возвращает массив</span>
+    }
+
+    public function save(array $rows): void
+    {
+        <span class="c">// ... записывает массив в JSON-файл</span>
+    }
+}</code></pre>
+    <p>Класс обязан реализовать <strong>все</strong> методы интерфейса с совпадающими
+    сигнатурами.</p>
+
+    <h4>8.4. Что такое полиморфизм</h4>
+<pre><code>function backup(StorageInterface $storage): void
+{
+    $rows = $storage-&gt;load();   <span class="c">// работает с ЛЮБЫМ хранилищем</span>
+    <span class="c">// ...</span>
+}</code></pre>
+    <p>Сегодня мы передадим файловое хранилище, завтра — работающее с базой данных. Функция
+    <code>backup</code> менять не придётся.</p>
+
+    <h4>8.5. Внедрение зависимости (DI)</h4>
+<pre><code>$storage = new JsonFileStorage(__DIR__ . '/data/catalog.json');
+$repository = new CatalogRepository($storage);   <span class="c">// зависимость передана снаружи</span></code></pre>
+    <p><code>CatalogRepository</code> не создаёт хранилище сам, а принимает готовым. Это гибко: легко
+    заменить хранилище и подсунуть в тестах временный файл.</p>
+
+    <h4>8.6. Типизация по интерфейсу</h4>
+<pre><code>public function __construct(private readonly StorageInterface $storage)
+{
+}</code></pre>
+
+    <h4>8.7. Интерфейс как замена наследованию</h4>
+<pre><code>final class Catalog implements Countable, IteratorAggregate
+{
+    <span class="c">// count() из Countable и getIterator() из IteratorAggregate</span>
+}</code></pre>
+    <p>Класс может реализовать сколько угодно интерфейсов, и это не создаёт сложных цепочек
+    наследования.</p>
+
+    <h4>8.8. Типичные ошибки новичка</h4>
+    <ul>
+        <li>забыть реализовать метод из интерфейса → ошибка «must implement»;</li>
+        <li>изменить сигнатуру метода из интерфейса — нельзя;</li>
+        <li>создавать зависимость внутри класса вместо передачи снаружи;</li>
+        <li>путать <code>extends</code> (наследование класса) и <code>implements</code> (интерфейс).</li>
+    </ul>
+
+    <h4>8.9. Итог раздела</h4>
+    <ul>
+        <li>интерфейс — договор о том, что класс умеет;</li>
+        <li>полиморфизм позволяет писать код, независимый от конкретной реализации;</li>
+        <li>DI — способ передавать зависимости снаружи.</li>
+    </ul>
+
+    <h3>9. Наследование и <code>abstract</code></h3>
+
+    <h4>9.1. Что такое наследование</h4>
+    <p><strong>Наследование</strong> позволяет одному классу взять поведение другого и
+    дополнить его. Пишется словом <code>extends</code>.</p>
+    <p><strong>Аналогия.</strong> «Транспорт» с методом «двигаться». «Автомобиль» и
+    «Велосипед» наследуют его и добавляют свои детали.</p>
+
+    <h4>9.2. Свой пример: своё исключение</h4>
+<pre><code>class ProductNotFoundException extends RuntimeException
+{
+    public function __construct(public readonly int $productId)
+    {
+        parent::__construct("Товар #{$productId} не найден");
+    }
+}</code></pre>
+    <ul>
+        <li>он получает всё поведение родителя (умеет быть «выброшенным»);</li>
+        <li>добавляет своё — свойство <code>productId</code>;</li>
+        <li><code>parent::__construct(...)</code> вызывает конструктор родителя.</li>
+    </ul>
+
+    <h4>9.3. Переопределение методов</h4>
+<pre><code>class Animal
+{
+    public function sound(): string
+    {
+        return '...';
+    }
+}
+
+class Dog extends Animal
+{
+    public function sound(): string
+    {
+        return 'Гав';
+    }
+}
+
+echo (new Dog())-&gt;sound();   <span class="c">// Гав</span></code></pre>
+
+    <h4>9.4. <code>protected</code> — доступ для наследников</h4>
+<pre><code>class Animal
+{
+    protected string $name = '';
+
+    public function __construct(string $name)
+    {
+        $this-&gt;name = $name;
+    }
+}
+
+class Dog extends Animal
+{
+    public function greeting(): string
+    {
+        return 'Привет, я ' . $this-&gt;name;   <span class="c">// доступ к protected</span>
+    }
+}</code></pre>
+
+    <h4>9.5. Абстрактные классы и методы</h4>
+<pre><code>abstract class Shape
+{
+    abstract public function area(): float;   <span class="c">// реализацию пишет наследник</span>
+
+    public function describe(): string
+    {
+        return 'Площадь: ' . $this-&gt;area();
+    }
+}
+
+class Circle extends Shape
+{
+    public function __construct(private float $radius)
+    {
+    }
+
+    public function area(): float
+    {
+        return round(M_PI * $this-&gt;radius ** 2, 2);
+    }
+}</code></pre>
+    <ul>
+        <li>объект <code>abstract</code>-класса создать нельзя;</li>
+        <li><code>abstract</code>-метод не имеет тела — наследник обязан его реализовать.</li>
+    </ul>
+
+    <h4>9.6. Интерфейс против абстрактного класса</h4>
+    <table>
+        <tr><th>Вопрос</th><th>Интерфейс</th><th>Абстрактный класс</th></tr>
+        <tr><td>Можно реализовать несколько?</td><td>да (<code>implements A, B</code>)</td><td>нет (только один <code>extends</code>)</td></tr>
+        <tr><td>Есть ли общий код?</td><td>нет</td><td>да</td></tr>
+        <tr><td>Есть ли свойства?</td><td>нет</td><td>да</td></tr>
+        <tr><td>Когда использовать?</td><td>«что умеет»</td><td>«чем является»</td></tr>
+    </table>
+
+    <h4>9.7. <code>final</code> — остановить наследование</h4>
+<pre><code>final class Product { /* ... */ }
+
+final public function id(): int
+{
+    return $this-&gt;id;
+}</code></pre>
+
+    <h4>9.8. Когда наследование не нужно</h4>
+<pre><code><span class="c">// Плохо: «репозиторий ЯВЛЯЕТСЯ хранилищем» — сомнительно</span>
+class CatalogRepository extends JsonFileStorage {}
+
+<span class="c">// Хорошо: «репозиторий ИСПОЛЬЗУЕТ хранилище»</span>
+class CatalogRepository
+{
+    public function __construct(private StorageInterface $storage) {}
+}</code></pre>
+
+    <h4>9.9. Типичные ошибки новичка</h4>
+    <ul>
+        <li>забыть <code>parent::__construct()</code>;</li>
+        <li>перепутать <code>extends</code> и <code>implements</code>;</li>
+        <li>пытаться создать объект <code>abstract</code>-класса напрямую;</li>
+        <li>наследовать «на всякий случай» вместо композиции.</li>
+    </ul>
+
+    <h4>9.10. Итог раздела</h4>
+    <ul>
+        <li>наследование расширяет класс, <code>parent::</code> обращается к родителю;</li>
+        <li><code>abstract</code> задаёт «заготовку», которую дополняют наследники;</li>
+        <li><code>final</code> запрещает наследование; композиция часто лучше наследования.</li>
+    </ul>
+
+    <h3>10. Исключения</h3>
+
+    <h4>10.1. Что такое исключение</h4>
+    <p><strong>Исключение</strong> — способ сообщить об ошибке, которую нельзя «переварить»
+    на месте. Исключение «бросают» словом <code>throw</code> и «ловят» через
+    <code>try / catch</code>.</p>
+<pre><code>try {
+    $product = $repository-&gt;find(999);   <span class="c">// может бросить исключение</span>
+    echo $product-&gt;title;
+} catch (ProductNotFoundException $e) {
+    http_response_code(404);
+    echo $e-&gt;getMessage();               <span class="c">// «Товар #999 не найден»</span>
+}</code></pre>
+
+    <h4>10.2. <code>throw</code> и объект исключения</h4>
+<pre><code>if ($product === null) {
+    throw new ProductNotFoundException($id);
+}</code></pre>
+    <p>После <code>throw</code> выполнение метода прерывается, и исключение «всплывает»
+    вверх до ближайшего подходящего <code>catch</code>. Если такого нет — фатальная ошибка
+    «Uncaught».</p>
+
+    <h4>10.3. Иерархия исключений</h4>
+<pre><code>Throwable
+├── Error
+│   └── TypeError, ValueError, ...
+└── Exception
+    ├── RuntimeException
+    │   └── ProductNotFoundException
+    ├── InvalidArgumentException
+    │   └── (наш) InvalidArgumentException
+    └── ...</code></pre>
+
+    <h4>10.4. Своё исключение</h4>
+<pre><code>class ProductNotFoundException extends RuntimeException
+{
+    public function __construct(public readonly int $productId)
+    {
+        parent::__construct("Товар #{$productId} не найден");
+    }
+}</code></pre>
+    <p>Своё исключение удобно: говорящее имя, дополнительные данные, можно ловить отдельно.</p>
+
+    <h4>10.5. Полезные методы исключения</h4>
+<pre><code>try {
+    $repository-&gt;find(999);
+} catch (ProductNotFoundException $e) {
+    echo $e-&gt;getMessage();   <span class="c">// текст сообщения</span>
+    echo $e-&gt;getCode();      <span class="c">// код (int), обычно 0</span>
+    echo $e-&gt;productId;      <span class="c">// наше дополнительное свойство</span>
+}</code></pre>
+
+    <h4>10.6. Несколько <code>catch</code> и <code>finally</code></h4>
+<pre><code>try {
+    $repository-&gt;find($id);
+} catch (ProductNotFoundException $e) {
+    http_response_code(404);
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo 'Что-то пошло не так';
+}</code></pre>
+    <p>Блок <code>finally</code> выполняется всегда — и при ошибке, и без неё:</p>
+<pre><code>try {
+    $storage-&gt;save($rows);
+} catch (StorageException $e) {
+    echo 'Ошибка записи';
+} finally {
+    echo 'Попытка записи завершена';
+}</code></pre>
+
+    <h4>10.7. Цепочка исключений (<code>previous</code>)</h4>
+<pre><code>try {
+    $json = json_encode($rows);
+} catch (Throwable $e) {
+    throw new StorageException('Не удалось сериализовать каталог', previous: $e);
+}</code></pre>
+    <p>Позже <code>$e-&gt;getPrevious()</code> вернёт исходную ошибку.</p>
+
+    <h4>10.8. Главное правило: массив или исключение</h4>
+    <ul>
+        <li><strong>ошибки пользователя</strong> (пустое название, цена-текст, скидка 150) —
+        <strong>ожидаемая</strong> ситуация. Их собирают в <strong>массив</strong> и показывают
+        под полями формы;</li>
+        <li><strong>«невозможные» ситуации</strong> (товара нет, файл не читается) —
+        <strong>исключения</strong>: программа должна сменить ход выполнения.</li>
+    </ul>
+    <p>Поэтому в проекте:</p>
+    <ul>
+        <li><code>ProductValidator::validate()</code> возвращает массив ошибок;</li>
+        <li>репозиторий бросает <code>ProductNotFoundException</code>;</li>
+        <li>хранилище бросает <code>StorageException</code>;</li>
+        <li>конструктор <code>Product</code> бросает <code>InvalidArgumentException</code>.</li>
+    </ul>
+
+    <h4>10.9. Типичные ошибки новичка</h4>
+    <ul>
+        <li>обернуть в <code>try</code> весь код «на всякий случай»;</li>
+        <li>«проглотить» исключение пустым <code>catch {}</code>;</li>
+        <li>использовать исключения для обычной валидации формы вместо массива;</li>
+        <li>ловить <code>Exception</code> там, где можно поймать точный класс.</li>
+    </ul>
+
+    <h4>10.10. Итог раздела</h4>
+    <ul>
+        <li><code>throw</code> бросает исключение, <code>try/catch</code> ловит,
+        <code>finally</code> выполняется всегда;</li>
+        <li>свои исключения делают ошибки говорящими и перехватываемыми точечно;</li>
+        <li>ошибки ввода — массив, «невозможные» ситуации — исключения.</li>
+    </ul>
+
+    <h3>11. Магические методы и встроенные интерфейсы</h3>
+
+    <h4>11.1. Что такое магические методы</h4>
+    <p><strong>Магические методы</strong> — методы с именами из двух подчёркиваний. PHP
+    вызывает их сам в особых ситуациях:</p>
+    <ul>
+        <li><code>__construct(...)</code> — при создании объекта;</li>
+        <li><code>__toString()</code> — когда объект превращают в строку.</li>
+    </ul>
+
+    <h4>11.2. <code>__toString</code></h4>
+<pre><code>public function __toString(): string
+{
+    return sprintf('#%d %s — %s', $this-&gt;id, $this-&gt;title, $this-&gt;category-&gt;value);
+}</code></pre>
+<pre><code>$product = new Product(3, 'Наушники JBL Tune', Category::Accessories, 3990.0, 30, 20);
+echo $product;              <span class="c">// #3 Наушники JBL Tune — Аксессуары</span>
+echo 'Товар: ' . $product;  <span class="c">// Товар: #3 Наушники JBL Tune — Аксессуары</span></code></pre>
+    <p>Без <code>__toString</code> попытка превратить объект в строку — фатальная ошибка.</p>
+
+    <h4>11.3. Зачем встроенные интерфейсы</h4>
+    <p>Мы хотим, чтобы с объектом <code>Catalog</code> можно было работать как с массивом:
+    считать через <code>count()</code> и перебирать через <code>foreach</code>:</p>
+    <ul>
+        <li><code>Countable</code> — добавляет работу <code>count()</code>;</li>
+        <li><code>IteratorAggregate</code> — добавляет работу <code>foreach</code>.</li>
+    </ul>
+
+    <h4>11.4. Реализация <code>Countable</code> и <code>IteratorAggregate</code></h4>
+<pre><code>final class Catalog implements Countable, IteratorAggregate
+{
+    /** @var Product[] */
+    private array $products = [];
+
+    public function count(): int
+    {
+        return count($this-&gt;products);
+    }
+
+    public function getIterator(): Traversable
+    {
+        return new ArrayIterator($this-&gt;products);
+    }
+}
+
+$catalog = new Catalog([$product]);
+count($catalog);              <span class="c">// работает благодаря Countable</span>
+foreach ($catalog as $item) { <span class="c">// работает благодаря IteratorAggregate</span>
+    echo $item-&gt;title;
+}</code></pre>
+    <p>Мы «одеваем» объект в привычную для PHP одежду массива, оставляя внутри свою
+    структуру.</p>
+
+    <h4>11.5. Почему это удобно</h4>
+<pre><code>foreach ($catalog-&gt;all() as $item) { ... }   <span class="c">// так тоже можно</span>
+foreach ($catalog as $item) { ... }          <span class="c">// но так короче и естественнее</span></code></pre>
+
+    <h4>11.6. Другие магические методы (обзорно)</h4>
+    <ul>
+        <li><code>__get</code>/<code>__set</code> — доступ к «виртуальным» свойствам;</li>
+        <li><code>__isset</code>/<code>__unset</code> — работа <code>isset()</code>/<code>unset()</code>;</li>
+        <li><code>__call</code> — вызов несуществующего метода;</li>
+        <li><code>__invoke</code> — вызов объекта как функции;</li>
+        <li><code>__clone</code> — настройка копирования.</li>
+    </ul>
+
+    <h4>11.7. Типичные ошибки новичка</h4>
+    <ul>
+        <li>надеяться, что <code>echo $object</code> заработает без <code>__toString</code>;</li>
+        <li>реализовать <code>Countable</code>, но забыть <code>count()</code>;</li>
+        <li>возвращать из <code>getIterator()</code> массив вместо объекта-итератора —
+        нужен <code>ArrayIterator</code>.</li>
+    </ul>
+
+    <h4>11.8. Итог раздела</h4>
+    <ul>
+        <li>магические методы PHP вызывает сам; <code>__toString</code> печатает объект;</li>
+        <li>встроенные интерфейсы <code>Countable</code>/<code>IteratorAggregate</code>
+        включают <code>count()</code> и <code>foreach</code> для объекта.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Часть III. Организация кода</h2>
+
+    <h3>12. Пространства имён и автозагрузка через Composer</h3>
+
+    <h4>12.1. Проблема: имена классов могут совпасть</h4>
+    <p>Когда классов много, их короткие имена могут совпасть. Решение —
+    <strong>пространства имён</strong> (<code>namespace</code>): это «фамилии» для классов.</p>
+<pre><code>namespace App;      <span class="c">// все классы ниже принадлежат пространству App</span>
+
+final class Product { /* ... */ }</code></pre>
+    <p>Полное имя класса теперь — <code>App\Product</code>.</p>
+
+    <h4>12.2. Импорт через <code>use</code></h4>
+<pre><code>use App\Product;
+use App\CatalogRepository;
+
+$product = new Product(...);        <span class="c">// PHP понимает: App\Product</span>
+$repo = new CatalogRepository(...); <span class="c">// PHP понимает: App\CatalogRepository</span></code></pre>
+    <p>Можно давать псевдоним: <code>use App\Product as ProductEntity;</code>.</p>
+
+    <h4>12.3. Проблема: подключать файлы вручную</h4>
+<pre><code>require 'src/Category.php';
+require 'src/Product.php';
+require 'src/ProductValidator.php';
+<span class="c">// ... и ещё десять строк</span></code></pre>
+    <p>Это неудобно и легко забыть строку. Решение — <strong>автозагрузка</strong>: PHP сам
+    подключает файл, когда встречает неизвестный класс.</p>
+
+    <h4>12.4. Composer: автозагрузка по правилу PSR-4</h4>
+    <p>В современном PHP автозагрузку почти всегда доверяют <strong>Composer</strong>.
+    Достаточно описать правило «где искать классы» в файле <code>composer.json</code>:</p>
+<pre><code>{
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}</code></pre>
+    <p>Читается так: «классы, чьё имя начинается с <code>App\</code>, лежат в папке
+    <code>src/</code>». Правило соответствия <strong>имени класса и пути к файлу</strong>
+    называют <strong>PSR-4</strong>:</p>
+    <table>
+        <tr><th>Класс</th><th>Файл</th></tr>
+        <tr><td><code>App\Product</code></td><td><code>src/Product.php</code></td></tr>
+        <tr><td><code>App\Catalog</code></td><td><code>src/Catalog.php</code></td></tr>
+        <tr><td><code>App\Category</code></td><td><code>src/Category.php</code></td></tr>
+    </table>
+    <p>Имя файла совпадает с именем класса — это обязательное правило PSR-4.</p>
+
+    <h4>12.5. Установка: <code>composer install</code></h4>
+<pre><code>composer install</code></pre>
+    <p>Composer создаёт папку <code>vendor/</code> и генерирует файл
+    <code>vendor/autoload.php</code> — готовый автозагрузчик. Его подключают один раз:</p>
+<pre><code>require __DIR__ . '/vendor/autoload.php';
+
+<span class="c">// дальше можно смело писать:</span>
+$product = new App\Product(...);</code></pre>
+
+    <h4>12.6. Что такое <code>vendor/</code></h4>
+    <p><code>vendor/</code> — папка со сторонними библиотеками и сгенерированным
+    автозагрузчиком. Правило: <strong>её не редактируют руками и не коммитят в
+    репозиторий</strong>. Она полностью воспроизводится командой <code>composer install</code>.
+    Поэтому <code>vendor/</code> добавляют в <code>.gitignore</code>.</p>
+
+    <h4>12.7. Автозагрузка после добавления классов</h4>
+    <p>При PSR-4-автозагрузке <strong>новые классы подхватываются автоматически</strong>.
+    Если же меняется само правило (например, добавили пространство
+    <code>App\Admin\</code> → <code>src/Admin/</code>), нужно перегенерировать
+    автозагрузчик:</p>
+<pre><code>composer dump-autoload</code></pre>
+
+    <h4>12.8. Что Composer делает «под капотом»</h4>
+    <p>Composer не волшебник: сгенерированный им <code>vendor/autoload.php</code> внутри
+    использует тот самый механизм <code>spl_autoload_register</code>. Просто писать его
+    руками больше не нужно.</p>
+
+    <h4>12.9. Мини-версия «как это выглядело бы руками»</h4>
+<pre><code>spl_autoload_register(function (string $class): void {
+    $prefix = 'App\\';
+    if (!str_starts_with($class, $prefix)) {
+        return;
+    }
+    $relative = substr($class, strlen($prefix));         <span class="c">// Product, Catalog, ...</span>
+    $file = __DIR__ . '/src/' . str_replace('\\', '/', $relative) . '.php';
+    if (is_file($file)) {
+        require $file;
+    }
+});</code></pre>
+    <p>Именно это (в более развитом виде) Composer и генерирует. В задании мы этот код
+    писать не будем — используем готовый <code>vendor/autoload.php</code>.</p>
+
+    <h4>12.10. Типичные ошибки новичка</h4>
+    <ul>
+        <li>забыли выполнить <code>composer install</code> — тогда нет
+        <code>vendor/autoload.php</code>;</li>
+        <li>файл назван не так, как класс (<code>product.php</code> вместо
+        <code>Product.php</code>) — PSR-4 не найдёт;</li>
+        <li>класс объявлен не в том namespace, что указан в <code>composer.json</code>;</li>
+        <li>вручную правят файлы в <code>vendor/</code> — при следующем
+        <code>composer install</code> изменения пропадут.</li>
+    </ul>
+
+    <h4>12.11. Итог раздела</h4>
+    <ul>
+        <li>пространство имён делает имена классов уникальными, <code>use</code> сокращает запись;</li>
+        <li>Composer по правилу PSR-4 генерирует автозагрузчик <code>vendor/autoload.php</code>;</li>
+        <li><code>composer install</code> создаёт <code>vendor/</code>, новые классы в
+        <code>src/</code> подхватываются сами;</li>
+        <li><code>vendor/</code> не коммитят; правило задаётся в <code>composer.json</code>.</li>
+    </ul>
+
+    <h3>13. Собираем всё вместе</h3>
+
+    <h4>13.1. Карта классов проекта</h4>
+    <table>
+        <tr><th>Класс</th><th>За что отвечает</th></tr>
+        <tr><td><code>Category</code> (enum)</td><td>список допустимых категорий и их названия</td></tr>
+        <tr><td><code>Product</code></td><td>один товар: данные + расчёты цены и наличия</td></tr>
+        <tr><td><code>ProductValidator</code></td><td>проверка данных формы, возвращает массив ошибок</td></tr>
+        <tr><td><code>Catalog</code></td><td>коллекция товаров: поиск, фильтр, сортировка, страницы</td></tr>
+        <tr><td><code>StorageInterface</code></td><td>«договор» хранилища: <code>load()</code> и <code>save()</code></td></tr>
+        <tr><td><code>JsonFileStorage</code></td><td>хранилище в JSON-файле с восстановлением</td></tr>
+        <tr><td><code>CatalogRepository</code></td><td>связывает <code>Catalog</code> и <code>StorageInterface</code></td></tr>
+        <tr><td><code>Html</code></td><td>безопасный вывод (<code>htmlspecialchars</code>)</td></tr>
+        <tr><td><code>ProductNotFoundException</code></td><td>исключение «товара с таким id нет»</td></tr>
+        <tr><td><code>StorageException</code></td><td>исключение «ошибка работы с файлом»</td></tr>
+        <tr><td><code>InvalidArgumentException</code></td><td>исключение «нарушены правила класса»</td></tr>
+    </table>
+
+    <h4>13.2. Схема связей</h4>
+    <p>Сплошная стрелка — «использует», пунктирная — «реализует» (<code>implements</code>):</p>
+<pre class="mermaid">
+flowchart TD
+    Pages["страницы<br/>index / add / edit / delete"]
+    Repo["CatalogRepository"]
+    Storage["StorageInterface"]
+    Json["JsonFileStorage"]
+    Catalog["Catalog"]
+    Product["Product"]
+    Category["Category"]
+    Html["Html"]
+
+    Pages --&gt; Repo
+    Repo --&gt; Storage
+    Repo --&gt; Catalog
+    Json -.-&gt;|implements| Storage
+    Catalog --&gt; Product
+    Product --&gt; Category
+    Pages --&gt; Html
+</pre>
+    <ul>
+        <li>страницы ничего не знают о файле — только о репозитории;</li>
+        <li>репозиторий ничего не знает о конкретном хранилище — только об интерфейсе;</li>
+        <li><code>Catalog</code> работает только с объектами <code>Product</code>;</li>
+        <li><code>Product</code> знает про <code>Category</code> и умеет считать цену.</li>
+    </ul>
+    <p>Такое разделение называют <strong>слоями</strong>.</p>
+
+    <h4>13.3. Путь одного запроса</h4>
+    <ol>
+        <li><code>index.php</code> подключает <code>vendor/autoload.php</code> и создаёт объекты;</li>
+        <li>вызывает <code>$repository-&gt;load()</code> — «дай каталог»;</li>
+        <li>репозиторий просит строки у <code>$storage-&gt;load()</code>;</li>
+        <li><code>JsonFileStorage</code> читает <code>data/catalog.json</code>, при необходимости чинит его;</li>
+        <li>репозиторий превращает строки в объекты <code>Product</code> и собирает <code>Catalog</code>;</li>
+        <li><code>index.php</code> вызывает <code>search()</code>, <code>filterByCategory()</code>,
+        <code>sortByPrice()</code>, <code>paginate()</code>;</li>
+        <li>страница выводит товары, экранируя всё через <code>Html::e()</code>.</li>
+    </ol>
+
+    <h4>13.4. «Было → стало»</h4>
+    <table>
+        <tr><th>Задача</th><th>Было (pr5, процедурно)</th><th>Стало (pr6, ООП)</th></tr>
+        <tr><td>Товар</td><td>массив <code>$product['title']</code></td><td>объект <code>$product-&gt;title</code></td></tr>
+        <tr><td>Категория</td><td>строка <code>'Техника'</code></td><td>enum <code>Category::Tech</code></td></tr>
+        <tr><td>Скидка</td><td><code>price_with_discount(...)</code></td><td><code>$product-&gt;priceWithDiscount()</code></td></tr>
+        <tr><td>Наличие</td><td><code>stock_label(...)</code></td><td><code>$product-&gt;stockLabel()</code></td></tr>
+        <tr><td>Список товаров</td><td>массив массивов</td><td>объект <code>Catalog</code> (<code>count</code>, <code>foreach</code>)</td></tr>
+        <tr><td>Хранилище</td><td><code>load_catalog/save_catalog</code></td><td><code>JsonFileStorage</code> + интерфейс</td></tr>
+        <tr><td>Валидация</td><td><code>validate_product()</code></td><td><code>ProductValidator::validate()</code></td></tr>
+        <tr><td>Нет товара</td><td>«функция вернула null»</td><td>исключение <code>ProductNotFoundException</code></td></tr>
+        <tr><td>Ошибка файла</td><td>«вернула false»</td><td>исключение <code>StorageException</code></td></tr>
+        <tr><td>Подключение классов</td><td><code>require</code> вручную</td><td>Composer (<code>vendor/autoload.php</code>)</td></tr>
+    </table>
+
+    <h4>13.5. Почему такая архитектура хороша</h4>
+    <ul>
+        <li><strong>Понятность.</strong> Каждый класс делает одно и понимает только своё.</li>
+        <li><strong>Заменяемость.</strong> Хранилище за интерфейсом: файл сегодня, база завтра.</li>
+        <li><strong>Тестируемость.</strong> <code>Product</code> и <code>Catalog</code> — чистые
+        объекты, их можно проверять без браузера.</li>
+        <li><strong>Безопасность.</strong> Вывод только через <code>Html::e()</code>, вход
+        только через валидатор, инварианты — в конструкторе.</li>
+    </ul>
+    <p>Теперь можно переходить к заданию: в нём мы по шагам соберём эти классы и снова
+    получим работающий каталог — только на объектах.</p>
+
+    <div class="page-nav">
+        <a href="pr5-zadanie.html">← К заданию работы 5</a>
+        <a href="pr6-zadanie.html" class="next">К заданию работы 6 →</a>
+    </div>
+
+</main>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+</script>
+
+</body>
+</html>
