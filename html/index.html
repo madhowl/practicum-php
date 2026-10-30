@@ -21,15 +21,16 @@
     <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
     <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
     <span class="toc-group"><span class="work-num">6</span><a href="pr6.html">теория</a><a href="pr6-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">7</span><a href="pr7.html">теория</a><a href="pr7-zadanie.html">задание</a></span>
 </nav>
 
 <main class="content">
 
     <h1>Практикум по PHP 8.3</h1>
-    <p class="lead">Шесть практических работ по основам PHP. Работы 1–5 выполнены в чисто процедурном
-    стиле (без классов и ООП), работа 6 переводит тот же проект на объекты. Каждая работа — самостоятельный,
-    проверяемый этап; вместе они образуют один сквозной проект — веб-витрину «Каталог товаров»
-    с хранением данных в JSON-файле.</p>
+    <p class="lead">Семь практических работ по основам PHP. Работы 1–5 выполнены в чисто процедурном
+    стиле (без классов и ООП), работа 6 переводит тот же проект на объекты, а работа 7 знакомит
+    с MVC и FrontController. Каждая работа — самостоятельный, проверяемый этап; вместе они
+    образуют сквозной проект: каталог товаров и сайт-визитку студии с новостями.</p>
 
     <h2>О чём курс</h2>
     <ul>
@@ -39,13 +40,15 @@
         <li>файлы и JSON: <code>json_encode</code>/<code>json_decode</code>, <code>json_validate</code> (новое в PHP 8.3), обработка ошибок;</li>
         <li>итоговое приложение: полный CRUD над данными в JSON-файле;</li>
         <li>ООП: классы и объекты, инкапсуляция, enum, интерфейсы, исключения, автозагрузка.</li>
+        <li>MVC: модель, представление, контроллер, PSR-7, маршрутизация, FrontController.</li>
     </ul>
 
     <div class="note"><strong>Требования к окружению</strong>
         PHP 8.3+ (<code>php -v</code>) и расширение <code>mbstring</code>
-        (<code>php -m | grep mbstring</code>). Для работы 6 нужен ещё Composer —
-        он генерирует автозагрузку классов (<code>composer install</code> в папке
-        <code>pr6</code>). Фреймворки и база данных не требуются.</div>
+        (<code>php -m | grep mbstring</code>). Для работ 6 и 7 нужен ещё Composer —
+        он генерирует автозагрузку классов и ставит зависимости
+        (<code>composer install</code> в папках <code>pr6</code> и <code>pr7</code>).
+        Фреймворки и база данных не требуются.</div>
 
     <h2>Работы</h2>
 
@@ -110,28 +113,42 @@
             </ul>
             <p class="links"><a href="pr6.html">Теория</a><a href="pr6-zadanie.html">Задание</a></p>
         </li>
+        <li>
+            <h2>Работа 7. MVC и FrontController</h2>
+            <p class="meta">Модель, представление, контроллер, PSR-7, League Route, единая точка входа.</p>
+            <ul>
+                <li>сайт-визитка студии с новостями и mock-данными в JSON;</li>
+                <li>репозиторий, нативные шаблоны, Bootstrap 5 и экранирование вывода;</li>
+                <li>маршруты League Route 7, Diactoros, ручная сборка зависимостей без PSR-11.</li>
+            </ul>
+            <p class="links"><a href="pr7.html">Теория</a><a href="pr7-zadanie.html">Задание</a></p>
+        </li>
     </ol>
 
     <h2>Покрытие тем по работам</h2>
     <table>
         <tr>
             <th>Тема</th>
-            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th>
+            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th>
         </tr>
-        <tr><td>Переменные, типы, операторы, условия</td><td>✅</td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>Циклы, match</td><td>✅</td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>Индексированные/ассоциативные массивы</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>Функции, области видимости</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td><td></td></tr>
-        <tr><td>Сортировки, пагинация</td><td></td><td>✅</td><td></td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>Строки, regex, GET/POST</td><td></td><td></td><td>✅</td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>Валидация, XSS (htmlspecialchars)</td><td></td><td></td><td>✅</td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>Чтение/запись файлов</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
-        <tr><td>JSON, json_validate (8.3)</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
-        <tr><td>Обработка ошибок и 404</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
-        <tr><td>CRUD, редиректы (PRG)</td><td></td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
-        <tr><td>Классы, объекты, инкапсуляция</td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
-        <tr><td>Enum, интерфейсы, полиморфизм</td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
-        <tr><td>Исключения, автозагрузка (PSR-4)</td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Переменные, типы, операторы, условия</td><td>✅</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>Циклы, match</td><td>✅</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td></td></tr>
+        <tr><td>Индексированные/ассоциативные массивы</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Функции, области видимости</td><td>✅</td><td>✅</td><td></td><td></td><td>✅</td><td></td><td></td></tr>
+        <tr><td>Сортировки, пагинация</td><td></td><td>✅</td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Строки, regex, GET/POST</td><td></td><td></td><td>✅</td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Валидация, XSS (htmlspecialchars)</td><td></td><td></td><td>✅</td><td></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Чтение/запись файлов</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>JSON, json_validate (8.3)</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Обработка ошибок и 404</td><td></td><td></td><td></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>CRUD, редиректы (PRG)</td><td></td><td></td><td></td><td></td><td>✅</td><td>✅</td><td></td></tr>
+        <tr><td>Классы, объекты, инкапсуляция</td><td></td><td></td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Enum, интерфейсы, полиморфизм</td><td></td><td></td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>Исключения, автозагрузка (PSR-4)</td><td></td><td></td><td></td><td></td><td></td><td>✅</td><td>✅</td></tr>
+        <tr><td>MVC, контроллеры, представления, DI</td><td></td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
+        <tr><td>PSR-7, HTTP-запрос и ответ</td><td></td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Маршрутизация, League Route, FrontController</td><td></td><td></td><td></td><td></td><td></td><td></td><td>✅</td></tr>
+        <tr><td>Шаблоны, layout, partials, Bootstrap 5</td><td></td><td></td><td></td><td></td><td>✅</td><td></td><td>✅</td></tr>
     </table>
 
     <h2>Быстрый запуск</h2>
@@ -143,14 +160,18 @@ php pr2/test.php
 php pr3/test.php
 php pr4/test.php
 php pr5/test.php
-php pr6/test.php</code></pre>
+php pr6/test.php
+PR7_AUTOLOAD=solution/vendor/autoload.php php pr7/test.php</code></pre>
             <p style="margin:6px 0 0">В конце каждой проверки — «ошибок: 0».
-            Перед <code>pr6</code> один раз выполните <code>composer install</code> в папке <code>pr6</code>.</p>
+            Перед <code>pr6</code> и <code>pr7</code> выполните <code>composer install</code>
+            в папках <code>pr6</code> и <code>pr7/solution</code>.</p>
         </div>
         <div class="start-card">
             <strong>Итоговое приложение</strong>
-            <pre><code>php -S localhost:8000 -t pr5</code></pre>
-            <p style="margin:6px 0 0">Открыть <a class="kbd-link" href="http://localhost:8000/index.php">localhost:8000/index.php</a>.
+            <pre><code>php -S localhost:8000 -t pr5
+php -S localhost:8000 -t pr7/solution/public</code></pre>
+            <p style="margin:6px 0 0">Открыть <a class="kbd-link" href="http://localhost:8000/index.php">localhost:8000/index.php</a>
+            или <a class="kbd-link" href="http://localhost:8000/">localhost:8000</a> для работы 7.
             Работы 3–6 запускаются аналогично: <code>-t pr3</code>, <code>-t pr4</code>, <code>-t pr6</code>.</p>
         </div>
         <div class="start-card">
@@ -161,15 +182,16 @@ php pr2/solution.php</code></pre>
         </div>
     </div>
 
-    <p>Исходный код и автотесты лежат в папках <code>pr1</code>…<code>pr6</code> рядом с этим
-    сайтом. Данные приложение хранит в <code>pr4/data/catalog.json</code>,
-    <code>pr5/data/catalog.json</code> и <code>pr6/data/catalog.json</code>: если файл удалить
-    или испортить, приложение само восстановит каталог по умолчанию.</p>
+    <p>Исходный код и автотесты лежат в папках <code>pr1</code>…<code>pr7</code> рядом с этим
+    сайтом. Каталог хранится в <code>pr4/data/catalog.json</code>,
+    <code>pr5/data/catalog.json</code> и <code>pr6/data/catalog.json</code>, новости работы 7 —
+    в <code>pr7/solution/data/news.json</code>. Если файл каталога удалить или испортить,
+    приложение восстановит данные по умолчанию.</p>
 
 </main>
 
 <footer class="site-footer">
-    Практикум по PHP 8.3 · от процедурного PHP к ООП · файлы + массивы + JSON + классы
+    Практикум по PHP 8.3 · от процедурного PHP к ООП и MVC · файлы + массивы + JSON + классы
 </footer>
 
 </body>

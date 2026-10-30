@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Работа 7. MVC и FrontController — теория</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html">Практикум по PHP 8.3<small>Работа 7. MVC и FrontController</small></a>
+</header>
+
+<nav class="toc" aria-label="Общее содержание">
+    <a href="index.html" class="home">Содержание</a>
+    <span class="toc-group"><span class="work-num">1</span><a href="pr1.html">теория</a><a href="pr1-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">2</span><a href="pr2.html">теория</a><a href="pr2-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">3</span><a href="pr3.html">теория</a><a href="pr3-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">4</span><a href="pr4.html">теория</a><a href="pr4-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">5</span><a href="pr5.html">теория</a><a href="pr5-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">6</span><a href="pr6.html">теория</a><a href="pr6-zadanie.html">задание</a></span>
+    <span class="toc-group"><span class="work-num">7</span><a href="pr7.html" class="active">теория</a><a href="pr7-zadanie.html">задание</a></span>
+</nav>
+
+<main class="content">
+
+    <p class="crumbs"><a href="index.html">Содержание</a> / Работа 7 / Теория</p>
+
+<h1>Работа 7. MVC и FrontController: сайт-визитка с новостями</h1>
+<p>В работах 1–6 приложение росло постепенно: сначала один скрипт, потом набор страниц
+<code>index.php</code>, <code>add.php</code>, <code>edit.php</code>, <code>delete.php</code>. Для небольшого каталога это нормально,
+но у такого устройства есть предел. Каждая страница сама читает запрос, сама загружает
+данные, сама проверяет форму и сама печатает HTML. Чем больше страниц, тем больше
+повторов и тем труднее понять, где заканчивается «получить данные» и начинается
+«показать страницу».</p>
+<p>В этой работе мы разложим приложение на три слоя — <strong>модель</strong>, <strong>представление</strong> и
+<strong>контроллер</strong> — и сделаем единую точку входа. Тема проекта новая: небольшой
+<strong>сайт-визитка digital-студии с новостями</strong>.</p>
+<p>Материал рассчитан на <strong>20–30 минут чтения</strong>. Примерно столько времени займут разделы:</p>
+<table>
+<thead>
+<tr>
+<th>Раздел</th>
+<th>Время</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. MVC</td>
+<td>5 мин</td>
+</tr>
+<tr>
+<td>2. FrontController</td>
+<td>4 мин</td>
+</tr>
+<tr>
+<td>3. PSR-7</td>
+<td>4 мин</td>
+</tr>
+<tr>
+<td>4. League Route 7</td>
+<td>5 мин</td>
+</tr>
+<tr>
+<td>5. Модель и репозиторий</td>
+<td>4 мин</td>
+</tr>
+<tr>
+<td>6. Views и Bootstrap</td>
+<td>3 мин</td>
+</tr>
+<tr>
+<td>7. Ручное DI без контейнера</td>
+<td>3 мин</td>
+</tr>
+<tr>
+<td>8. Ошибки и ответ</td>
+<td>2 мин</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1. Что такое MVC</h2>
+<h3>1.1. Проблема «страниц-скриптов»</h3>
+<p>Представим страницу новости. В процедурном стиле она может выглядеть так:</p>
+<pre><code class="language-php">&lt;?php
+$news = json_decode(file_get_contents('data/news.json'), true);
+$item = null;
+
+foreach ($news as $row) {
+    if ($row['slug'] === $_GET['slug']) {
+        $item = $row;
+    }
+}
+
+if ($item === null) {
+    http_response_code(404);
+    echo 'Новость не найдена';
+    exit;
+}
+
+?&gt;&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+    &lt;h1&gt;&lt;?= htmlspecialchars($item['title']) ?&gt;&lt;/h1&gt;
+    &lt;p&gt;&lt;?= nl2br(htmlspecialchars($item['body'])) ?&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>Здесь в одном файле смешано всё:</p>
+<ul>
+<li><strong>получение данных</strong> — чтение JSON, поиск новости;</li>
+<li><strong>логика запроса</strong> — проверка параметра <code>slug</code>, ответ 404;</li>
+<li><strong>вывод</strong> — HTML, заголовок, абзацы.</li>
+</ul>
+<p>Пока файл один, это терпимо. Но стоит добавить список новостей, главную страницу и
+контакты — и одинаковый код чтения JSON начнёт копироваться. А если завтра данные
+переедут из JSON в базу или API, придётся менять каждую страницу.</p>
+<h3>1.2. Три роли</h3>
+<p><strong>MVC</strong> (Model–View–Controller) — это способ разделить ответственность:</p>
+<table>
+<thead>
+<tr>
+<th>Слой</th>
+<th>Что делает</th>
+<th>Чего не делает</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model</strong></td>
+<td>Описывает предметную область и правила: новость, категория, репозиторий</td>
+<td>Не печатает HTML и не читает <code>$_GET</code></td>
+</tr>
+<tr>
+<td><strong>View</strong></td>
+<td>Превращает данные в HTML по шаблону</td>
+<td>Не ходит в файл/базу и не решает, какой маршрут сработал</td>
+</tr>
+<tr>
+<td><strong>Controller</strong></td>
+<td>Принимает запрос, вызывает модель, выбирает view и возвращает ответ</td>
+<td>Не содержит SQL/JSON-парсинга и больших кусков HTML</td>
+</tr>
+</tbody>
+</table>
+<p>Модель в этой работе — это не только «объект новости», но и <strong>репозиторий</strong>, который
+умеет отдать новости. View — набор PHP-шаблонов. Controller — небольшой класс, который
+связывает запрос и модель.</p>
+<pre class="mermaid">
+flowchart LR
+    Client[&quot;Браузер&quot;] --&gt; Controller[&quot;Controller&lt;br/&gt;принимает запрос&quot;]
+    Controller --&gt; Model[&quot;Model + Repository&lt;br/&gt;данные и правила&quot;]
+    Model --&gt; Controller
+    Controller --&gt; View[&quot;View&lt;br/&gt;шаблон HTML&quot;]
+    View --&gt; Controller
+    Controller --&gt; Response[&quot;PSR-7 Response&quot;]
+    Response --&gt; Client
+</pre>
+<p>Контроллер — дирижёр. Он не играет на всех инструментах сам, а решает, кого позвать и
+в каком порядке.</p>
+<h3>1.3. Границы ответственности</h3>
+<p>Полезно запомнить три запрета:</p>
+<ol>
+<li><strong>Модель не знает про HTTP.</strong> У <code>News</code> нет методов <code>isPost()</code> или <code>redirect()</code>.</li>
+<li><strong>View не знает, откуда данные.</strong> Шаблон получает готовый объект <code>$news</code> и просто
+   выводит его поля.</li>
+<li><strong>Controller не верстает страницу целиком.</strong> Он выбирает шаблон и передаёт данные,
+   а разметка живёт в <code>templates/</code>.</li>
+</ol>
+<p>Такое разделение даёт главное: каждую часть можно менять отдельно. Заменили JSON на
+базу — контроллер и шаблоны не изменились. Переделали дизайн — модель и репозиторий
+не тронуты.</p>
+<hr />
+<h2>2. FrontController</h2>
+<h3>2.1. Одна дверь вместо десяти</h3>
+<p>В работах 3–6 у нас было много точек входа: <code>index.php</code>, <code>add.php</code>, <code>edit.php</code>,
+<code>delete.php</code>. Веб-сервер сам выбирал файл по адресу. Это называется <strong>page controller</strong>:
+на каждую страницу — свой скрипт.</p>
+<p><strong>FrontController</strong> — противоположный подход: все запросы приходят в один файл
+<code>public/index.php</code>. Дальше этот файл решает, какой код вызвать.</p>
+<pre class="mermaid">
+flowchart TD
+    subgraph Old[&quot;Раньше: page controller&quot;]
+        B1[&quot;Браузер&quot;] --&gt; I[&quot;index.php&quot;]
+        B1 --&gt; A[&quot;add.php&quot;]
+        B1 --&gt; E[&quot;edit.php&quot;]
+        B1 --&gt; D[&quot;delete.php&quot;]
+    end
+
+    subgraph New[&quot;Теперь: front controller&quot;]
+        B2[&quot;Браузер&quot;] --&gt; F[&quot;public/index.php&quot;]
+        F --&gt; R[&quot;Router&quot;]
+        R --&gt; C1[&quot;HomeController&quot;]
+        R --&gt; C2[&quot;NewsController&quot;]
+        R --&gt; C3[&quot;PageController&quot;]
+    end
+</pre>
+<p>Плюсы FrontController:</p>
+<ul>
+<li>один вход — одно место для общих настроек, обработки ошибок и заголовков;</li>
+<li>маршруты описаны в одном файле, их видно целиком;</li>
+<li>легко добавить middleware: логирование, авторизацию, кэш;</li>
+<li>структура URL не зависит от имён файлов на диске.</li>
+</ul>
+<h3>2.2. Полный жизненный цикл запроса</h3>
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant B as Браузер
+    participant F as public/index.php
+    participant R as Router
+    participant C as Controller
+    participant Repo as NewsRepository
+    participant V as View
+    participant E as ResponseEmitter
+
+    B-&gt;&gt;F: GET /news/novyj-ofis
+    F-&gt;&gt;F: ServerRequestFactory::fromGlobals()
+    F-&gt;&gt;R: dispatch(request)
+    R-&gt;&gt;C: NewsController::show(request, args)
+    C-&gt;&gt;Repo: findBySlug(&quot;novyj-ofis&quot;)
+    Repo--&gt;&gt;C: News
+    C-&gt;&gt;V: render(&quot;news/show&quot;, data)
+    V--&gt;&gt;C: HTML-строка
+    C--&gt;&gt;R: HtmlResponse(200)
+    R--&gt;&gt;F: Response
+    F-&gt;&gt;E: emit(response)
+    E--&gt;&gt;B: HTTP 200 + HTML
+</pre>
+<p>Обратите внимание: контроллер не печатает HTML через <code>echo</code>. Он возвращает <strong>объект
+ответа</strong>. Печать — задача отдельного «эмиттера» в самом конце.</p>
+<h3>2.3. Точка входа</h3>
+<pre><code class="language-php">&lt;?php
+
+declare(strict_types=1);
+
+use App\Application;
+use App\Http\ResponseEmitter;
+use Laminas\Diactoros\ServerRequestFactory;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$request = ServerRequestFactory::fromGlobals(
+    $_SERVER,
+    $_GET,
+    $_POST,
+    $_COOKIE,
+    $_FILES
+);
+
+$application = new Application(dirname(__DIR__));
+$response = $application-&gt;handle($request);
+
+(new ResponseEmitter())-&gt;emit($response);
+</code></pre>
+<p>Файл короткий намеренно. Вся сборка приложения спрятана в <code>Application</code>, а здесь только
+«взять запрос — отдать ответ».</p>
+<hr />
+<h2>3. PSR-7: запрос и ответ как объекты</h2>
+<h3>3.1. Зачем объекты вместо суперглобальных массивов</h3>
+<p>В процедурном коде мы работали с <code>$_GET</code>, <code>$_POST</code>, <code>$_SERVER</code>. Это глобальные массивы:
+их можно случайно изменить в любом месте, их неудобно передавать в тесты, у них нет
+типов.</p>
+<p><strong>PSR-7</strong> описывает HTTP-сообщения как объекты:</p>
+<ul>
+<li><code>ServerRequestInterface</code> — входящий запрос;</li>
+<li><code>ResponseInterface</code> — ответ;</li>
+<li><code>StreamInterface</code> — тело сообщения;</li>
+<li><code>UriInterface</code> — адрес.</li>
+</ul>
+<p>В этой работе используется реализация <strong>Laminas Diactoros</strong>. Она создаёт объекты из
+глобальных массивов и умеет отдавать HTML-ответ.</p>
+<h3>3.2. Создание запроса</h3>
+<pre><code class="language-php">use Laminas\Diactoros\ServerRequestFactory;
+
+$request = ServerRequestFactory::fromGlobals(
+    $_SERVER,
+    $_GET,
+    $_POST,
+    $_COOKIE,
+    $_FILES
+);
+
+$path   = $request-&gt;getUri()-&gt;getPath();   // /news/novyj-ofis
+$method = $request-&gt;getMethod();           // GET
+$query  = $request-&gt;getQueryParams();      // ['page' =&gt; '2']
+</code></pre>
+<p>В тестах такой объект можно создать руками, без веб-сервера:</p>
+<pre><code class="language-php">$request = new Laminas\Diactoros\ServerRequest(
+    uri: 'https://example.test/news',
+    method: 'GET'
+);
+</code></pre>
+<h3>3.3. Создание ответа</h3>
+<pre><code class="language-php">use Laminas\Diactoros\Response\HtmlResponse;
+
+$response = new HtmlResponse('&lt;h1&gt;Привет&lt;/h1&gt;', 200);
+
+$response-&gt;getStatusCode();          // 200
+$response-&gt;getHeaderLine('Content-Type'); // text/html; charset=utf-8
+</code></pre>
+<p>Для 404 достаточно другого статуса:</p>
+<pre><code class="language-php">$notFound = new HtmlResponse('&lt;h1&gt;Страница не найдена&lt;/h1&gt;', 404);
+</code></pre>
+<p>Для редиректа есть <code>RedirectResponse</code>:</p>
+<pre><code class="language-php">use Laminas\Diactoros\Response\RedirectResponse;
+
+return new RedirectResponse('/news');
+</code></pre>
+<h3>3.4. Иммутабельность</h3>
+<p>PSR-7-объекты <strong>неизменяемы</strong>. Методы <code>withStatus()</code>, <code>withHeader()</code> не меняют старый
+объект, а возвращают новый:</p>
+<pre><code class="language-php">$response = new HtmlResponse('OK');
+$redirect = $response-&gt;withStatus(302)-&gt;withHeader('Location', '/news');
+
+// $response по-прежнему имеет статус 200
+</code></pre>
+<p>Это защищает от неожиданных изменений: если объект передали в другую функцию, она не
+сможет тайно испортить ответ.</p>
+<hr />
+<h2>4. Маршрутизация: League Route 7</h2>
+<h3>4.1. Установка</h3>
+<pre><code class="language-bash">composer require league/route:^7.0
+composer require laminas/laminas-diactoros:^3.9
+</code></pre>
+<p>Route 7 требует PHP 8.3+ и работает с PSR-7. Diactoros даёт реализации запроса и ответа.</p>
+<h3>4.2. Простой маршрут</h3>
+<pre><code class="language-php">use League\Route\Router;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+$router = new Router();
+
+$router-&gt;get('/', function (ServerRequestInterface $request): ResponseInterface {
+    return new Laminas\Diactoros\Response\HtmlResponse('&lt;h1&gt;Главная&lt;/h1&gt;');
+});
+</code></pre>
+<p>Контроллер получает два аргумента:</p>
+<ol>
+<li><code>ServerRequestInterface $request</code> — запрос;</li>
+<li><code>array $args</code> — параметры из адреса (может быть пустым).</li>
+</ol>
+<p>Возвращать нужно <code>ResponseInterface</code>.</p>
+<h3>4.3. Параметры в адресе</h3>
+<pre><code class="language-php">$router-&gt;get('/news/{slug:slug}', function (
+    ServerRequestInterface $request,
+    array $args
+): ResponseInterface {
+    $slug = $args['slug'];
+    // ...
+});
+</code></pre>
+<p><code>{slug:slug}</code> означает «сегмент с именем <code>slug</code>, проверенный встроенным шаблоном
+<code>slug</code>». В Route есть и другие шаблоны: <code>number</code>, <code>word</code>, <code>alphanum_dash</code>, <code>uuid</code>.
+Можно задать регулярное выражение: <code>{id:[0-9]+}</code>.</p>
+<h3>4.4. Группы и имена маршрутов</h3>
+<pre><code class="language-php">$router-&gt;group('/admin', function ($group): void {
+    $group-&gt;get('/news', [AdminController::class, 'index'])-&gt;setName('admin.news');
+});
+
+$router-&gt;get('/news/{slug:slug}', [$news, 'show'])-&gt;setName('news.show');
+
+$url = $router-&gt;generateUrl('news.show', ['slug' =&gt; 'novyj-ofis']);
+// /news/novyj-ofis
+</code></pre>
+<p>Имена пригодятся, когда ссылки появятся в шаблонах: путь меняется в одном месте, а
+<code>generateUrl()</code> собирает корректный адрес.</p>
+<h3>4.5. Как Router выбирает маршрут</h3>
+<pre class="mermaid">
+flowchart TD
+    Start[&quot;Запрос: метод + путь&quot;] --&gt; Match{&quot;Есть маршрут?&quot;}
+    Match -- &quot;да&quot; --&gt; Call[&quot;Вызвать контроллер&quot;]
+    Match -- &quot;метод не тот&quot; --&gt; MNA[&quot;405 Method Not Allowed&quot;]
+    Match -- &quot;путь не найден&quot; --&gt; NF[&quot;404 Not Found&quot;]
+    Call --&gt; Resp[&quot;Response&quot;]
+</pre>
+<p>В этой работе используется стандартная <code>ApplicationStrategy</code>: контроллер получает
+<code>request</code> и <code>args</code>, а если маршрут не найден, Route бросает
+<code>League\Route\Http\Exception\NotFoundException</code>. Мы ловим это исключение в
+<code>Application</code> и показываем красивую страницу 404.</p>
+<hr />
+<h2>5. Модель и репозиторий</h2>
+<h3>5.1. Модель <code>News</code></h3>
+<p>Модель описывает новость и её правила. В нашем проекте это <code>readonly</code>-класс: после
+создания его нельзя изменить.</p>
+<pre><code class="language-php">final readonly class News
+{
+    public function __construct(
+        public int $id,
+        public string $slug,
+        public string $title,
+        public NewsCategory $category,
+        public string $excerpt,
+        public string $body,
+        public DateTimeImmutable $publishedAt,
+    ) {
+    }
+
+    public static function fromArray(array $row): self
+    {
+        // JSON -&gt; объект, с проверкой категории и даты
+    }
+
+    public function formattedDate(): string
+    {
+        return $this-&gt;publishedAt-&gt;format('d.m.Y');
+    }
+}
+</code></pre>
+<p>Категория — это <code>enum</code>, а не строка. Опечатка <code>'compani'</code> не пройдёт:</p>
+<pre><code class="language-php">enum NewsCategory: string
+{
+    case Company = 'company';
+    case Projects = 'projects';
+    case Life = 'life';
+}
+</code></pre>
+<h3>5.2. Зачем репозиторий</h3>
+<p>Репозиторий — это «склад» объектов. Контроллеру не важно, лежат новости в JSON, в базе
+или приходят из API. Ему нужны методы:</p>
+<pre><code class="language-php">$repository-&gt;all();                 // все новости
+$repository-&gt;latest(3);             // три последние
+$repository-&gt;findBySlug($slug);     // одна новость или null
+</code></pre>
+<p>Внутри <code>NewsRepository</code> читает <code>data/news.json</code>, проверяет JSON и превращает строки в
+объекты <code>News</code>. Это <strong>mock-данные</strong>: базы нет, но граница уже проведена правильно.
+Позже можно написать <code>ApiNewsRepository</code> с теми же методами и заменить реализацию.</p>
+<pre class="mermaid">
+classDiagram
+    class Application {
+        +handle(request) Response
+    }
+    class HomeController {
+        +index(request, args) Response
+    }
+    class NewsController {
+        +index(request, args) Response
+        +show(request, args) Response
+    }
+    class NewsRepository {
+        +all() News[]
+        +latest(limit) News[]
+        +findBySlug(slug) News
+    }
+    class News {
+        +int id
+        +string slug
+        +string title
+        +NewsCategory category
+        +DateTimeImmutable publishedAt
+    }
+    class NewsCategory {
+        &lt;&lt;enumeration&gt;&gt;
+        Company
+        Projects
+        Life
+    }
+    class View {
+        +render(template, data) string
+        +partial(template, data) string
+    }
+
+    Application --&gt; HomeController
+    Application --&gt; NewsController
+    Application --&gt; View
+    HomeController --&gt; NewsRepository
+    NewsController --&gt; NewsRepository
+    NewsRepository --&gt; News
+    News --&gt; NewsCategory
+</pre>
+<h3>5.3. Ошибки данных</h3>
+<p>Если файла нет или JSON испорчен, репозиторий бросает <code>RuntimeException</code>. Это не
+«пользовательская» ошибка, а проблема конфигурации. <code>Application</code> ловит её и отдаёт 500.
+Пользователь не должен видеть путь к файлу и стек вызовов — только понятное сообщение.</p>
+<hr />
+<h2>6. Views: шаблоны, layout и Bootstrap 5</h2>
+<h3>6.1. Как работает рендеринг</h3>
+<p>View — это класс, который умеет превратить имя шаблона и данные в строку HTML.</p>
+<pre><code class="language-php">$html = $view-&gt;render('news/show', [
+    'title' =&gt; $news-&gt;title,
+    'active' =&gt; 'news',
+    'news' =&gt; $news,
+]);
+</code></pre>
+<p>Внутри:</p>
+<ol>
+<li>открывается буфер вывода (<code>ob_start</code>);</li>
+<li>подключается файл <code>templates/news/show.php</code>;</li>
+<li>всё, что он вывел, возвращается строкой (<code>ob_get_clean</code>);</li>
+<li>готовая строка вставляется в <code>templates/layout.php</code> как <code>$content</code>.</li>
+</ol>
+<pre class="mermaid">
+flowchart LR
+    C[&quot;Controller&quot;] --&gt; V[&quot;View::render('news/show', data)&quot;]
+    V --&gt; T[&quot;templates/news/show.php&quot;]
+    T --&gt; L[&quot;templates/layout.php&quot;]
+    L --&gt; H[&quot;HTML-строка&quot;]
+    H --&gt; R[&quot;HtmlResponse&quot;]
+</pre>
+<h3>6.2. Layout и partials</h3>
+<p><strong>Layout</strong> — общая рамка сайта: <code>&lt;head&gt;</code>, навигация, подвал, подключение Bootstrap.
+Отдельная страница отвечает только за свою середину.</p>
+<p><strong>Partial</strong> — маленький повторяемый кусок, например карточка новости:</p>
+<pre><code class="language-php">&lt;?= $view-&gt;partial('partials/news-card', ['news' =&gt; $news]) ?&gt;
+</code></pre>
+<p>Карточка используется и на главной, и в списке новостей — верстка не дублируется.</p>
+<h3>6.3. Экранирование</h3>
+<p>Любые данные, попавшие в HTML, выводятся через <code>Html::e()</code>:</p>
+<pre><code class="language-php">&lt;h1&gt;&lt;?= Html::e($news-&gt;title) ?&gt;&lt;/h1&gt;
+</code></pre>
+<p><code>Html::e()</code> — обёртка над <code>htmlspecialchars(..., ENT_QUOTES, 'UTF-8')</code>. Она превращает
+<code>&lt;script&gt;</code> в безопасный текст. Даже если новость пришла из ненадёжного источника,
+сломать страницу не получится.</p>
+<p>Правило простое: <strong>в шаблоне нет <code>&lt;?= $переменная ?&gt;</code> без экранирования</strong>. Исключение —
+<code>$content</code> в layout: это уже готовый HTML, который собрал наш же View.</p>
+<h3>6.4. Bootstrap 5</h3>
+<p>Bootstrap подключается с CDN в layout:</p>
+<pre><code class="language-html">&lt;link href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css&quot; rel=&quot;stylesheet&quot;&gt;
+</code></pre>
+<p>Готовые классы (<code>container</code>, <code>row</code>, <code>col</code>, <code>card</code>, <code>navbar</code>, <code>badge</code>, <code>btn</code>) ускоряют
+вёрстку и дают адаптивность без собственного CSS. Собственного CSS в проекте минимум:
+только hero-блок и небольшие штрихи.</p>
+<hr />
+<h2>7. Внедрение зависимостей без PSR-11</h2>
+<h3>7.1. Что такое зависимость</h3>
+<p><code>NewsController</code> не может работать без репозитория и View. Эти объекты — его
+<strong>зависимости</strong>. Вместо того чтобы создавать их внутри:</p>
+<pre><code class="language-php">// плохо: контроллер сам создаёт зависимости
+public function __construct()
+{
+    $this-&gt;repository = new NewsRepository(__DIR__ . '/../../data/news.json');
+}
+</code></pre>
+<p>мы передаём их снаружи:</p>
+<pre><code class="language-php">// хорошо: зависимости приходят готовыми
+public function __construct(
+    private readonly View $view,
+    private readonly NewsRepository $repository,
+) {
+}
+</code></pre>
+<p>Это называется <strong>внедрение зависимостей</strong> (dependency injection, DI). В тестах можно
+передать другой репозиторий или другой View — контроллер не заметит.</p>
+<h3>7.2. Composition root</h3>
+<p>Где создаются все объекты? В одном месте — в <code>Application</code>. Это <strong>composition root</strong>
+(«корень сборки»):</p>
+<pre><code class="language-php">$view = new View($basePath . '/templates', ['site' =&gt; $site]);
+$repository = new NewsRepository($basePath . '/data/news.json');
+
+$home = new HomeController($view, $repository);
+$news = new NewsController($view, $repository);
+$pages = new PageController($view);
+
+$router = new Router();
+$router-&gt;get('/', [$home, 'index']);
+$router-&gt;get('/news', [$news, 'index']);
+$router-&gt;get('/news/{slug:slug}', [$news, 'show']);
+$router-&gt;get('/about', [$pages, 'about']);
+$router-&gt;get('/contacts', [$pages, 'contacts']);
+</code></pre>
+<pre class="mermaid">
+flowchart TD
+    App[&quot;Application&lt;br/&gt;composition root&quot;] --&gt; View[&quot;View&quot;]
+    App --&gt; Repo[&quot;NewsRepository&quot;]
+    App --&gt; Home[&quot;HomeController&quot;]
+    App --&gt; News[&quot;NewsController&quot;]
+    App --&gt; Pages[&quot;PageController&quot;]
+    App --&gt; Router[&quot;Router&quot;]
+    Home --&gt; View
+    Home --&gt; Repo
+    News --&gt; View
+    News --&gt; Repo
+    Pages --&gt; View
+    Router --&gt; Home
+    Router --&gt; News
+    Router --&gt; Pages
+</pre>
+<h3>7.3. Почему без PSR-11</h3>
+<p>PSR-11 — стандарт <strong>контейнера</strong> зависимостей. Контейнер умеет автоматически создавать
+объекты по имени класса и подставлять зависимости. Это удобно в больших проектах, но
+скрывает, откуда что берётся.</p>
+<p>По условию работы контейнер <strong>не используем</strong>. Вместо него — явные <code>new</code> в
+<code>Application</code>. Плюсы:</p>
+<ul>
+<li>видно всю картину зависимостей на одном экране;</li>
+<li>нет «магии» и неожиданных ошибок вида «сервис не зарегистрирован»;</li>
+<li>проще понять, что именно получает контроллер;</li>
+<li>для проекта из десяти классов контейнер действительно не нужен.</li>
+</ul>
+<p>Важно: Route 7 <strong>умеет</strong> работать с PSR-11, но мы не передаём ему контейнер и
+регистрируем контроллеры как готовые объекты.</p>
+<hr />
+<h2>8. Ошибки и отдача ответа</h2>
+<h3>8.1. 404 и 500</h3>
+<p>В <code>Application::handle()</code> есть два перехвата:</p>
+<pre><code class="language-php">try {
+    return $this-&gt;router-&gt;dispatch($request);
+} catch (NotFoundException $error) {
+    return new HtmlResponse($view-&gt;render('errors/404', ...), 404);
+} catch (Throwable $error) {
+    return new HtmlResponse($view-&gt;render('errors/500', ...), 500);
+}
+</code></pre>
+<ul>
+<li><code>NotFoundException</code> Route бросает, если маршрут не найден. Мы также бросаем его
+  вручную, если новость с таким <code>slug</code> отсутствует.</li>
+<li>Любая другая ошибка — 500. В режиме отладки (<code>APP_DEBUG=1</code>) можно показать текст
+  ошибки, в обычном режиме — только общее сообщение.</li>
+</ul>
+<h3>8.2. Эмиссия PSR-7-ответа</h3>
+<p>Объект <code>Response</code> сам не отправляется в браузер. Нужно перенести его статус, заголовки и
+тело в реальный HTTP-ответ. В этой работе для наглядности используется маленький
+собственный <code>ResponseEmitter</code>:</p>
+<pre><code class="language-php">http_response_code($response-&gt;getStatusCode());
+
+foreach ($response-&gt;getHeaders() as $name =&gt; $values) {
+    foreach ($values as $value) {
+        header($name . ': ' . $value, false);
+    }
+}
+
+echo (string) $response-&gt;getBody();
+</code></pre>
+<p>В реальном проекте можно взять <code>Laminas\HttpHandlerRunner\Emitter\SapiEmitter</code> — он
+делает то же самое, но аккуратнее обрабатывает заголовки. Для учебной работы важно
+понять сам принцип: <strong>контроллер формирует ответ, фронт-контроллер его отправляет</strong>.</p>
+<hr />
+<h2>9. Собираем всё вместе</h2>
+<p>Итоговая схема приложения:</p>
+<pre class="mermaid">
+flowchart TD
+    Browser[&quot;Браузер&quot;] --&gt; Public[&quot;public/index.php&quot;]
+    Public --&gt; Req[&quot;ServerRequestFactory&quot;]
+    Req --&gt; App[&quot;Application&quot;]
+    App --&gt; Router[&quot;League Route&quot;]
+    Router --&gt; Home[&quot;HomeController&quot;]
+    Router --&gt; NewsC[&quot;NewsController&quot;]
+    Router --&gt; Pages[&quot;PageController&quot;]
+    Home --&gt; Repo[&quot;NewsRepository&quot;]
+    NewsC --&gt; Repo
+    Repo --&gt; JSON[&quot;data/news.json&quot;]
+    Home --&gt; View[&quot;View + templates&quot;]
+    NewsC --&gt; View
+    Pages --&gt; View
+    View --&gt; Layout[&quot;layout.php + Bootstrap 5&quot;]
+    Home --&gt; Resp[&quot;HtmlResponse&quot;]
+    NewsC --&gt; Resp
+    Pages --&gt; Resp
+    Resp --&gt; Emitter[&quot;ResponseEmitter&quot;]
+    Emitter --&gt; Browser
+</pre>
+<p>Что теперь умеет приложение:</p>
+<ul>
+<li>открывать главную страницу с последними новостями;</li>
+<li>показывать список новостей;</li>
+<li>открывать отдельную новость по <code>slug</code>;</li>
+<li>отдавать страницы «О нас» и «Контакты»;</li>
+<li>возвращать 404 для несуществующего адреса;</li>
+<li>не смешивать данные, разметку и обработку запроса.</li>
+</ul>
+<hr />
+<h2>10. Чек-лист перед заданием</h2>
+<p>Проверьте, что вы можете ответить на вопросы:</p>
+<ul class="checklist">
+<li>Чем модель отличается от контроллера и почему модель не должна знать про <code>$_GET</code>?</li>
+<li>Зачем нужен FrontController и что он делает?</li>
+<li>Что такое PSR-7 и почему объекты запроса/ответа неизменяемы?</li>
+<li>Как Route 7 передаёт параметры из адреса в контроллер?</li>
+<li>Зачем нужен репозиторий, если можно прочитать JSON прямо в контроллере?</li>
+<li>Почему в шаблоне нужно экранировать каждый вывод?</li>
+<li>Что такое composition root и почему в этой работе нет PSR-11-контейнера?</li>
+</ul>
+<p>Если ответы находятся — переходите к <code>zadanie.md</code>: там мы соберём это приложение
+по шагам.</p>
+
+    <div class="page-nav">
+        <a href="pr6-zadanie.html">← К заданию работы 6</a>
+        <a href="pr7-zadanie.html" class="next">К заданию работы 7 →</a>
+    </div>
+
+</main>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+</script>
+
+</body>
+</html>
