@@ -1,0 +1,16 @@
+{
+    "name": "practicum/pr6-catalog-solution",
+    "description": "Работа 6. Эталонное решение: каталог товаров на классах",
+    "type": "project",
+    "require": {
+        "php": ">=8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
